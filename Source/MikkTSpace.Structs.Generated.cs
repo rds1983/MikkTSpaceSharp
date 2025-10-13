@@ -10,19 +10,25 @@ namespace MikkTSpaceSharp
 	{
 		public unsafe class SMikkTSpaceContext
 		{
-			public SMikkTSpaceInterface m_pInterface;
-			public void* m_pUserData;
+			public getNumFacesDelegate m_getNumFaces;
+			public getNumVerticesOfFaceDelegate m_getNumVerticesOfFace;
+			public getPositionDelegate m_getPosition;
+			public getPositionDelegate m_getNormal;
+			public getTexCoordDelegate m_getTexCoord;
+			public setTSpaceBasicDelegate m_setTSpaceBasic;
+			public setTSpaceDelegate m_setTSpace;
 		}
 
-		public class SMikkTSpaceInterface
+		public struct SVec2
 		{
-			public delegate0 m_getNumFaces;
-			public delegate1 m_getNumVerticesOfFace;
-			public delegate2 m_getPosition;
-			public delegate2 m_getNormal;
-			public delegate2 m_getTexCoord;
-			public delegate3 m_setTSpaceBasic;
-			public delegate4 m_setTSpace;
+			public float x;
+			public float y;
+
+			public SVec2(float xx, float yy)
+			{
+				x = xx;
+				y = yy;
+			}
 		}
 
 		public struct SVec3
@@ -30,6 +36,13 @@ namespace MikkTSpaceSharp
 			public float x;
 			public float y;
 			public float z;
+
+			public SVec3(float xx, float yy, float zz)
+			{
+				x = xx;
+				y = yy;
+				z = zz;
+			}
 		}
 
 		public unsafe struct SSubGroup

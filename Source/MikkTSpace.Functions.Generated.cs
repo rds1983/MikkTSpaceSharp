@@ -10,11 +10,12 @@ namespace MikkTSpaceSharp
 	{
 		public static int g_iCells = (int)(2048);
 
-		public delegate int delegate0(SMikkTSpaceContext arg0);
-		public delegate int delegate1(SMikkTSpaceContext arg0, int arg1);
-		public delegate void delegate2(SMikkTSpaceContext arg0, float* arg1, int arg2, int arg3);
-		public delegate void delegate3(SMikkTSpaceContext arg0, float* arg1, float arg2, int arg3, int arg4);
-		public delegate void delegate4(SMikkTSpaceContext arg0, float* arg1, float* arg2, float arg3, float arg4, int arg5, int arg6, int arg7);
+		public delegate int getNumFacesDelegate();
+		public delegate int getNumVerticesOfFaceDelegate(int face);
+		public delegate SVec3 getPositionDelegate(int face, int index);
+		public delegate SVec2 getTexCoordDelegate(int face, int index);
+		public delegate void setTSpaceBasicDelegate(SVec3 tangent, float arg2, int arg3, int arg4);
+		public delegate void setTSpaceDelegate(SVec3 tangent, SVec3 bitangent, float arg3, float arg4, int arg5, int arg6, int arg7);
 
 		public static int genTangSpaceDefault(SMikkTSpaceContext pContext)
 		{
@@ -30,14 +31,14 @@ namespace MikkTSpaceSharp
 			int iNrTrianglesIn = (int)(0); int f = (int)(0); int t = (int)(0); int i = (int)(0);
 			int iNrTSPaces = (int)(0); int iTotTris = (int)(0); int iDegenTriangles = (int)(0); int iNrMaxGroups = (int)(0);
 			int iNrActiveGroups = (int)(0); int index = (int)(0);
-			int iNrFaces = (int)(pContext.m_pInterface.m_getNumFaces(pContext));
+			int iNrFaces = (int)(pContext.m_getNumFaces());
 			int bRes = (int)(0);
 			float fThresCos = (float)(CRuntime.cos((double)((fAngularThreshold * (float)(3.141592653589793)) / 180)));
-			if ((((((pContext.m_pInterface.m_getNumFaces) == (null)) || ((pContext.m_pInterface.m_getNumVerticesOfFace) == (null))) || ((pContext.m_pInterface.m_getPosition) == (null))) || ((pContext.m_pInterface.m_getNormal) == (null))) || ((pContext.m_pInterface.m_getTexCoord) == (null)))
+			if ((((((pContext.m_getNumFaces) == (null)) || ((pContext.m_getNumVerticesOfFace) == (null))) || ((pContext.m_getPosition) == (null))) || ((pContext.m_getNormal) == (null))) || ((pContext.m_getTexCoord) == (null)))
 				return (int)(0);
 			for (f = (int)(0); (f) < (iNrFaces); f++)
 			{
-				int verts = (int)(pContext.m_pInterface.m_getNumVerticesOfFace(pContext, (int)(f)));
+				int verts = (int)(pContext.m_getNumVerticesOfFace((int)(f)));
 				if ((verts) == (3))
 					++iNrTrianglesIn;
 				else if ((verts) == (4))
@@ -128,28 +129,21 @@ namespace MikkTSpaceSharp
 			index = (int)(0);
 			for (f = (int)(0); (f) < (iNrFaces); f++)
 			{
-				int verts = (int)(pContext.m_pInterface.m_getNumVerticesOfFace(pContext, (int)(f)));
+				int verts = (int)(pContext.m_getNumVerticesOfFace((int)(f)));
 				if ((verts != 3) && (verts != 4))
 					continue;
 				for (i = (int)(0); (i) < (verts); i++)
 				{
 					STSpace* pTSpace = &psTspace[index];
-					float* tang = stackalloc float[]
+					if (pContext.m_setTSpace != null)
 					{
-				pTSpace->vOs.x,
-				pTSpace->vOs.y,
-				pTSpace->vOs.z
-			};
-					float* bitang = stackalloc float[]
+						pContext.m_setTSpace(pTSpace->vOs, pTSpace->vOt, (float)(pTSpace->fMagS), (float)(pTSpace->fMagT), (int)(pTSpace->bOrient), (int)(f), (int)(i));
+					}
+
+					if (pContext.m_setTSpaceBasic != null)
 					{
-				pTSpace->vOt.x,
-				pTSpace->vOt.y,
-				pTSpace->vOt.z
-			};
-					if (pContext.m_pInterface.m_setTSpace != null)
-						pContext.m_pInterface.m_setTSpace(pContext, tang, bitang, (float)(pTSpace->fMagS), (float)(pTSpace->fMagT), (int)(pTSpace->bOrient), (int)(f), (int)(i));
-					if (pContext.m_pInterface.m_setTSpaceBasic != null)
-						pContext.m_pInterface.m_setTSpaceBasic(pContext, tang, (float)((pTSpace->bOrient) == (1) ? 1 : (-1)), (int)(f), (int)(i));
+						pContext.m_setTSpaceBasic(pTSpace->vOs, (float)((pTSpace->bOrient) == (1) ? 1 : (-1)), (int)(f), (int)(i));
+					}
 					++index;
 				}
 			}
@@ -224,9 +218,9 @@ namespace MikkTSpaceSharp
 		{
 			int iTSpacesOffs = (int)(0); int f = (int)(0); int t = (int)(0);
 			int iDstTriIndex = (int)(0);
-			for (f = (int)(0); (f) < (pContext.m_pInterface.m_getNumFaces(pContext)); f++)
+			for (f = (int)(0); (f) < (pContext.m_getNumFaces()); f++)
 			{
-				int verts = (int)(pContext.m_pInterface.m_getNumVerticesOfFace(pContext, (int)(f)));
+				int verts = (int)(pContext.m_getNumVerticesOfFace((int)(f)));
 				if ((verts != 3) && (verts != 4))
 					continue;
 				pTriInfos[iDstTriIndex].iOrgFaceNumber = (int)(f);
@@ -823,40 +817,26 @@ namespace MikkTSpaceSharp
 		public static SVec3 GetPosition(SMikkTSpaceContext pContext, int index)
 		{
 			int iF = 0; int iI = 0;
-			SVec3 res = new SVec3();
-			float* pos = stackalloc float[3];
 			IndexToData(&iF, &iI, (int)(index));
-			pContext.m_pInterface.m_getPosition(pContext, pos, (int)(iF), (int)(iI));
-			res.x = (float)(pos[0]);
-			res.y = (float)(pos[1]);
-			res.z = (float)(pos[2]);
+
+			var res = pContext.m_getPosition((int)(iF), (int)(iI));
 			return (SVec3)(res);
 		}
 
 		public static SVec3 GetNormal(SMikkTSpaceContext pContext, int index)
 		{
 			int iF = 0; int iI = 0;
-			SVec3 res = new SVec3();
-			float* norm = stackalloc float[3];
 			IndexToData(&iF, &iI, (int)(index));
-			pContext.m_pInterface.m_getNormal(pContext, norm, (int)(iF), (int)(iI));
-			res.x = (float)(norm[0]);
-			res.y = (float)(norm[1]);
-			res.z = (float)(norm[2]);
+			var res = pContext.m_getNormal((int)(iF), (int)(iI));
 			return (SVec3)(res);
 		}
 
 		public static SVec3 GetTexCoord(SMikkTSpaceContext pContext, int index)
 		{
 			int iF = 0; int iI = 0;
-			SVec3 res = new SVec3();
-			float* texc = stackalloc float[2];
 			IndexToData(&iF, &iI, (int)(index));
-			pContext.m_pInterface.m_getTexCoord(pContext, texc, (int)(iF), (int)(iI));
-			res.x = (float)(texc[0]);
-			res.y = (float)(texc[1]);
-			res.z = (float)(1);
-			return (SVec3)(res);
+			var res = pContext.m_getTexCoord((int)(iF), (int)(iI));
+			return new SVec3(res.x, res.y, 1.0f);
 		}
 
 		public static void DegenPrologue(STriInfo[] pTriInfos, int* piTriList_out, int iNrTrianglesIn, int iTotTris)
