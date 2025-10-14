@@ -8,6 +8,13 @@ namespace MikkTSpaceSharp
 {
 	unsafe partial class MikkTSpace
 	{
+		public delegate int getNumFacesDelegate();
+		public delegate int getNumVerticesOfFaceDelegate(int face);
+		public delegate SVec3 getPositionDelegate(int face, int vertex);
+		public delegate SVec2 getTexCoordDelegate(int face, int vertex);
+		public delegate void setTSpaceBasicDelegate(SVec3 tangent, float orient, int face, int vertex);
+		public delegate void setTSpaceDelegate(SVec3 tangent, SVec3 bitangent, float magS, float magT, int orient, int face, int vertex);
+
 		public class SMikkTSpaceContext
 		{
 			public getNumFacesDelegate m_getNumFaces;
