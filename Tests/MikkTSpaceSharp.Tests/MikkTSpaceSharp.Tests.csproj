@@ -13,6 +13,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Source\MikkTSpaceSharp.csproj" />
+    <ProjectReference Include="..\MikkTSpaceSharp.NativeWrapper\MikkTSpaceSharp.NativeWrapper.vcxproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="Assets\**\*.*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

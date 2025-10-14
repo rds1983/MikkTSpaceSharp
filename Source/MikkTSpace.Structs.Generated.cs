@@ -8,7 +8,7 @@ namespace MikkTSpaceSharp
 {
 	unsafe partial class MikkTSpace
 	{
-		public unsafe class SMikkTSpaceContext
+		public class SMikkTSpaceContext
 		{
 			public getNumFacesDelegate m_getNumFaces;
 			public getNumVerticesOfFaceDelegate m_getNumVerticesOfFace;

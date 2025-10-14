@@ -12,10 +12,10 @@ namespace MikkTSpaceSharp
 
 		public delegate int getNumFacesDelegate();
 		public delegate int getNumVerticesOfFaceDelegate(int face);
-		public delegate SVec3 getPositionDelegate(int face, int index);
-		public delegate SVec2 getTexCoordDelegate(int face, int index);
-		public delegate void setTSpaceBasicDelegate(SVec3 tangent, float arg2, int arg3, int arg4);
-		public delegate void setTSpaceDelegate(SVec3 tangent, SVec3 bitangent, float arg3, float arg4, int arg5, int arg6, int arg7);
+		public delegate SVec3 getPositionDelegate(int face, int vertex);
+		public delegate SVec2 getTexCoordDelegate(int face, int vertex);
+		public delegate void setTSpaceBasicDelegate(SVec3 tangent, float orient, int face, int vertex);
+		public delegate void setTSpaceDelegate(SVec3 tangent, SVec3 bitangent, float magS, float magT, int orient, int face, int vertex);
 
 		public static int genTangSpaceDefault(SMikkTSpaceContext pContext)
 		{
@@ -49,6 +49,11 @@ namespace MikkTSpaceSharp
 				return (int)(0);
 			piTriListIn = (int*)(CRuntime.malloc((ulong)(sizeof(int) * 3 * iNrTrianglesIn)));
 			pTriInfos = new STriInfo[iNrTrianglesIn];
+			for (var k = 0; k < pTriInfos.Length; ++k)
+			{
+				pTriInfos[k] = new STriInfo();
+			}
+
 			if (((piTriListIn) == (null)) || ((pTriInfos) == (null)))
 			{
 				if (piTriListIn != null)

@@ -18,6 +18,10 @@ namespace MikkTSpaceSharp.Tests
 				foreach(var part in mesh.MeshParts)
 				{
 					var vd = part.GetVertexData();
+
+					vd.CalculateTangets();
+
+					vd.CalculateTangentsNative();
 				}
 			}
 		}

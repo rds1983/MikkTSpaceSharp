@@ -1,11 +1,13 @@
 ﻿using AssetManagementBase;
 using DigitalRiseModel;
 using Microsoft.Xna.Framework.Graphics;
+using MikkTSpaceNativeWrapper;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
 using System.Reflection;
+using static MikkTSpaceSharp.MikkTSpace;
 
 namespace MikkTSpaceSharp.Tests
 {
@@ -13,7 +15,9 @@ namespace MikkTSpaceSharp.Tests
 	{
 		public Vector3 Position;
 		public Vector3 Normal;
-		public Vector3 UV;
+		public Vector2 UV;
+		public Vector3 Tangent;
+		public Vector3 BiTangent;
 	}
 
 	internal class VertexData
@@ -168,15 +172,130 @@ namespace MikkTSpaceSharp.Tests
 			throw new Exception($"Could not find vertex element with usage {usage}");
 		}
 
-		public static VertexData GetVertexData(this DrMeshPart vd)
+		public static VertexData GetVertexData(this DrMeshPart p)
 		{
-			var stride = vd.VertexBuffer.VertexDeclaration.VertexStride;
+			var vd = p.VertexBuffer.VertexDeclaration;
+			var stride = vd.VertexStride;
 
-			var vertexBytes = new byte[vd.NumVertices * stride];
+			var vertexBytes = new byte[p.NumVertices * stride];
 
-			vd.VertexBuffer.GetData(vd.VertexOffset * stride, vertexBytes, 0, vd.NumVertices * stride);
+			p.VertexBuffer.GetData(p.VertexOffset * stride, vertexBytes, 0, p.NumVertices * stride);
 
-			return null;
+			var elPos = vd.EnsureElement(VertexElementUsage.Position);
+			var elNormal = vd.EnsureElement(VertexElementUsage.Normal);
+			var elUv = vd.EnsureElement(VertexElementUsage.TextureCoordinate);
+
+			var result = new VertexData
+			{
+				Vertices = new VertexElementData[p.NumVertices]
+			};
+
+			for (var i = 0; i < p.NumVertices; ++i)
+			{
+				var ved = new VertexElementData();
+				unsafe
+				{
+					fixed (byte* bptr = &vertexBytes[i * stride + elPos.Offset])
+					{
+						Vector3* v = (Vector3*)bptr;
+						ved.Position = *v;
+					}
+
+					fixed (byte* bptr = &vertexBytes[i * stride + elNormal.Offset])
+					{
+						Vector3* v = (Vector3*)bptr;
+						ved.Normal = *v;
+					}
+
+					fixed (byte* bptr = &vertexBytes[i * stride + elUv.Offset])
+					{
+						Vector2* v = (Vector2*)bptr;
+						ved.UV = *v;
+					}
+				}
+
+				result.Vertices[i] = ved;
+			}
+
+			result.Indices = new uint[p.PrimitiveCount * 3];
+			if (p.IndexBuffer.IndexElementSize == IndexElementSize.SixteenBits)
+			{
+				var idata = new ushort[result.Indices.Length];
+				p.IndexBuffer.GetData(idata);
+
+				for (var i = 0; i < idata.Length; ++i)
+				{
+					result.Indices[i] = idata[i];
+				}
+			}
+			else
+			{
+				p.IndexBuffer.GetData(result.Indices);
+			}
+
+			return result;
+		}
+
+		public static VertexElementData GetVertexElementData(this VertexData vd, int face, int vertex)
+		{
+			var idx = vd.Indices[face * 3 + vertex];
+
+			return vd.Vertices[idx];
+		}
+
+		public static SVec3 ToSVec3(this Vector3 v) => new SVec3(v.X, v.Y, v.Z);
+		public static SVec2 ToSVec2(this Vector2 v) => new SVec2(v.X, v.Y);
+
+		public static Vector3 ToVector3(this SVec3 v) => new Vector3(v.x, v.y, v.z);
+
+		public static void CalculateTangets(this VertexData vd)
+		{
+			var ctx = new SMikkTSpaceContext
+			{
+				m_getNumFaces = () => vd.Indices.Length / 3,
+				m_getNumVerticesOfFace = face => 3,
+				m_getPosition = (face, vertex) => vd.GetVertexElementData(face, vertex).Position.ToSVec3(),
+				m_getNormal = (face, vertex) => vd.GetVertexElementData(face, vertex).Normal.ToSVec3(),
+				m_getTexCoord = (face, vertex) => vd.GetVertexElementData(face, vertex).UV.ToSVec2(),
+
+				m_setTSpace = (tangent, bitangent, magS, magT, orient, face, vertex) =>
+					{
+						var idx = vd.Indices[face * 3 + vertex];
+						vd.Vertices[idx].Tangent = tangent.ToVector3();
+						vd.Vertices[idx].BiTangent = bitangent.ToVector3();
+					}
+			};
+
+			var result = genTangSpaceDefault(ctx);
+			if (result == 0)
+			{
+				throw new Exception("Tangents generation failed");
+			}
+		}
+
+		public static Vec3 ToVec3(this Vector3 v) => new Vec3 { X = v.X, Y = v.Y, Z = v.Z };
+		public static Vec2 ToVec2(this Vector2 v) => new Vec2 { X = v.X, Y = v.Y };
+		public static VData ToVData(this VertexElementData vd)
+		{
+			return new VData
+			{
+				Position = vd.Position.ToVec3(),
+				Normal = vd.Normal.ToVec3(),
+				UV = vd.UV.ToVec2(),
+				Tangent = vd.Tangent.ToVec3(),
+				BiTangent = vd.BiTangent.ToVec3(),
+			};
+		}
+
+		public static void CalculateTangentsNative(this VertexData vd)
+		{
+			var vdatas = new VData[vd.Vertices.Length];
+			for(var i = 0; i < vdatas.Length; ++i)
+			{
+				vdatas[i] = vd.Vertices[i].ToVData();
+			}
+
+			Native.CalculateTangents(vdatas, vd.Indices);
 		}
 	}
 }
