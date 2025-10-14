@@ -2,7 +2,7 @@
 
 #include "MikkTSpaceSharp.NativeWrapper.h"
 
-namespace MikkTSpaceNativeWrapper 
+namespace MikkTSpaceNativeWrapper
 {
 	static int GetNumFaces(const SMikkTSpaceContext* pContext)
 	{
@@ -35,6 +35,12 @@ namespace MikkTSpaceNativeWrapper
 		return Native::SetTSpace(pContext, fvTangent, fvBiTangent, fMagS, fMagT, bIsOrientationPreserving, iFace, iVert);
 	}
 
+	static void SetTSpaceBasic(const SMikkTSpaceContext* pContext, const float fvTangent[], const float fSign,
+		const int iFace, const int iVert)
+	{
+		return Native::SetTSpaceBasic(pContext, fvTangent, fSign, iFace, iVert);
+	}
+
 	bool Internal::CalculateTangents()
 	{
 		SMikkTSpaceInterface inter;
@@ -46,6 +52,26 @@ namespace MikkTSpaceNativeWrapper
 		inter.m_getTexCoord = GetUV;
 		inter.m_setTSpace = SetTSpace;
 		inter.m_setTSpaceBasic = nullptr;
+
+		SMikkTSpaceContext ctx;
+		ctx.m_pInterface = &inter;
+
+		auto result = genTangSpaceDefault(&ctx);
+
+		return result;
+	}
+
+	bool Internal::CalculateTangentsBasic()
+	{
+		SMikkTSpaceInterface inter;
+
+		inter.m_getNumFaces = GetNumFaces;
+		inter.m_getNumVerticesOfFace = GetNumVerticesPerFace;
+		inter.m_getPosition = GetPosition;
+		inter.m_getNormal = GetNormal;
+		inter.m_getTexCoord = GetUV;
+		inter.m_setTSpace = nullptr;
+		inter.m_setTSpaceBasic = SetTSpaceBasic;
 
 		SMikkTSpaceContext ctx;
 		ctx.m_pInterface = &inter;

@@ -8,6 +8,18 @@ using namespace System;
 using namespace System::Runtime::InteropServices;
 
 namespace MikkTSpaceNativeWrapper {
+	public value struct Vec2
+	{
+	public:
+		float X, Y;
+
+		Vec2(float x, float y)
+		{
+			X = x;
+			Y = y;
+		}
+	};
+
 	public value struct Vec3
 	{
 	public:
@@ -21,15 +33,17 @@ namespace MikkTSpaceNativeWrapper {
 		}
 	};
 
-	public value struct Vec2
+	public value struct Vec4
 	{
 	public:
-		float X, Y;
+		float X, Y, Z, W;
 
-		Vec2(float x, float y)
+		Vec4(float x, float y, float z, float w)
 		{
 			X = x;
 			Y = y;
+			Z = z;
+			W = w;
 		}
 	};
 
@@ -42,12 +56,14 @@ namespace MikkTSpaceNativeWrapper {
 		Vec2 UV;
 		Vec3 Tangent;
 		Vec3 BiTangent;
+		Vec4 TangentBasic;
 	};
 
 	class Internal
 	{
 	public:
 		static bool CalculateTangents();
+		static bool CalculateTangentsBasic();
 	};
 
 	public ref class Native
@@ -110,6 +126,16 @@ namespace MikkTSpaceNativeWrapper {
 			_data[idx] = v;
 		}
 
+		static void SetTSpaceBasic(const SMikkTSpaceContext* pContext, const float fvTangent[], const float fSign, const int iFace, const int iVert)
+		{
+			auto idx = GetIndex(iFace, iVert);
+			auto v = _data[idx];
+
+			v.TangentBasic = Vec4(fvTangent[0], fvTangent[1], fvTangent[2], fSign);
+
+			_data[idx] = v;
+		}
+
 		static bool CalculateTangents(array<VData>^ data, array<unsigned int>^ indices)
 		{
 			_data = data;
@@ -117,6 +143,15 @@ namespace MikkTSpaceNativeWrapper {
 
 			// We need to use non-managed Internal class for proper function pointers
 			return Internal::CalculateTangents();
+		}
+
+		static bool CalculateTangentsBasic(array<VData>^ data, array<unsigned int>^ indices)
+		{
+			_data = data;
+			_indices = indices;
+
+			// We need to use non-managed Internal class for proper function pointers
+			return Internal::CalculateTangentsBasic();
 		}
 	};
 }

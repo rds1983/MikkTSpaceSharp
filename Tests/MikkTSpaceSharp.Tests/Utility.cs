@@ -19,6 +19,7 @@ namespace MikkTSpaceSharp.Tests
 		public Vector2 UV;
 		public Vector3 Tangent;
 		public Vector3 BiTangent;
+		public Vector4 TangentBasic;
 	}
 
 	internal class VertexData
@@ -270,7 +271,7 @@ namespace MikkTSpaceSharp.Tests
 
 		public static Vector3 ToVector3(this SVec3 v) => new Vector3(v.x, v.y, v.z);
 
-		public static void CalculateTangets(this VertexData vd)
+		public static void CalculateTangents(this VertexData vd)
 		{
 			var ctx = new SMikkTSpaceContext
 			{
@@ -295,8 +296,32 @@ namespace MikkTSpaceSharp.Tests
 			}
 		}
 
-		public static Vec3 ToVec3(this Vector3 v) => new Vec3 { X = v.X, Y = v.Y, Z = v.Z };
-		public static Vec2 ToVec2(this Vector2 v) => new Vec2 { X = v.X, Y = v.Y };
+		public static void CalculateTangentsBasic(this VertexData vd)
+		{
+			var ctx = new SMikkTSpaceContext
+			{
+				m_getNumFaces = () => vd.Indices.Length / 3,
+				m_getNumVerticesOfFace = face => 3,
+				m_getPosition = (face, vertex) => vd.GetVertexElementData(face, vertex).Position.ToSVec3(),
+				m_getNormal = (face, vertex) => vd.GetVertexElementData(face, vertex).Normal.ToSVec3(),
+				m_getTexCoord = (face, vertex) => vd.GetVertexElementData(face, vertex).UV.ToSVec2(),
+				m_setTSpaceBasic = (SVec3 tangent, float orient, int face, int vertex) =>
+				{
+					var idx = vd.Indices[face * 3 + vertex];
+					vd.Vertices[idx].TangentBasic = new Vector4(tangent.x, tangent.y, tangent.z, orient);
+				}
+			};
+
+			var result = genTangSpaceDefault(ctx);
+			if (result == 0)
+			{
+				throw new Exception("Tangents generation failed");
+			}
+		}
+
+		public static Vec2 ToVec2(this Vector2 v) => new Vec2(v.X, v.Y);
+		public static Vec3 ToVec3(this Vector3 v) => new Vec3(v.X, v.Y, v.Z);
+		public static Vec4 ToVec4(this Vector4 v) => new Vec4(v.X, v.Y, v.Z, v.W);
 		public static VData ToVData(this VertexElementData vd)
 		{
 			return new VData
@@ -306,10 +331,12 @@ namespace MikkTSpaceSharp.Tests
 				UV = vd.UV.ToVec2(),
 				Tangent = vd.Tangent.ToVec3(),
 				BiTangent = vd.BiTangent.ToVec3(),
+				TangentBasic = vd.TangentBasic.ToVec4()
 			};
 		}
 
 		public static Vector3 ToVector3(this Vec3 v) => new Vector3(v.X, v.Y, v.Z);
+		public static Vector4 ToVector4(this Vec4 v) => new Vector4(v.X, v.Y, v.Z, v.W);
 
 		public static void CalculateTangentsNative(this VertexData vd)
 		{
@@ -328,11 +355,35 @@ namespace MikkTSpaceSharp.Tests
 			}
 		}
 
+		public static void CalculateTangentsNativeBasic(this VertexData vd)
+		{
+			var vdatas = new VData[vd.Vertices.Length];
+			for (var i = 0; i < vdatas.Length; ++i)
+			{
+				vdatas[i] = vd.Vertices[i].ToVData();
+			}
+
+			Native.CalculateTangentsBasic(vdatas, vd.Indices);
+
+			for (var i = 0; i < vdatas.Length; ++i)
+			{
+				vd.Vertices[i].TangentBasic = vdatas[i].TangentBasic.ToVector4();
+			}
+		}
+
 		public static void AssertAreEqual(Vector3 a, Vector3 b)
 		{
 			Assert.AreEqual(a.X, b.X, ZeroTolerance);
 			Assert.AreEqual(a.Y, b.Y, ZeroTolerance);
 			Assert.AreEqual(a.Z, b.Z, ZeroTolerance);
+		}
+
+		public static void AssertAreEqual(Vector4 a, Vector4 b)
+		{
+			Assert.AreEqual(a.X, b.X, ZeroTolerance);
+			Assert.AreEqual(a.Y, b.Y, ZeroTolerance);
+			Assert.AreEqual(a.Z, b.Z, ZeroTolerance);
+			Assert.AreEqual(a.W, b.W, ZeroTolerance);
 		}
 	}
 }
