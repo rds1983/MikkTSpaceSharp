@@ -5,7 +5,11 @@
 ### Overview
 C# Port of https://github.com/mmikk/MikkTSpace
 
-It is important to note, that this project is **port**(not **wrapper**). Original C code had been ported to C#. Therefore MikkTSpaceSharp doesnt require any native binaries.
+Which is a common standard for tangent space used in baking tools to produce normal maps.
+
+More information can be found at http://www.mikktspace.com/.
+
+It is important to note, that MikkTSpaceSharp is **port**(not **wrapper**). Original C code had been ported to C#. Therefore MikkTSpaceSharp doesnt require any native binaries.
 
 The porting hasn't been done by hand, but using [Hebron](https://github.com/rds1983/Hebron), which is the C to C# code converter utility.
 
