@@ -9,7 +9,7 @@ C# Port of https://github.com/mmikk/MikkTSpace
 https://www.nuget.org/packages/MikkTSpaceSharp/
 
 ### Usage
-This sample code generates Vector4 tangents(W stores orientation):
+This sample code accepts basic geometry represented by triangles and generates Vector4 tangents(W stores orientation):
 ```c#
 using static MikkTSpaceSharp.MikkTSpace;
 
