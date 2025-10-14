@@ -1,5 +1,6 @@
 ﻿using AssetManagementBase;
 using DigitalRiseModel;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Xna.Framework.Graphics;
 using MikkTSpaceNativeWrapper;
 using System;
@@ -24,6 +25,27 @@ namespace MikkTSpaceSharp.Tests
 	{
 		public VertexElementData[] Vertices;
 		public uint[] Indices;
+
+		public VertexData Clone()
+		{
+			var result = new VertexData
+			{
+				Vertices = new VertexElementData[Vertices.Length],
+				Indices = new uint[Indices.Length]
+			};
+
+			for (var i = 0; i < Vertices.Length; ++i)
+			{
+				result.Vertices[i] = Vertices[i];
+			}
+
+			for (var i = 0; i < Indices.Length; ++i)
+			{
+				result.Indices[i] = Indices[i];
+			}
+
+			return result;
+		}
 	}
 
 
@@ -287,15 +309,30 @@ namespace MikkTSpaceSharp.Tests
 			};
 		}
 
+		public static Vector3 ToVector3(this Vec3 v) => new Vector3(v.X, v.Y, v.Z);
+
 		public static void CalculateTangentsNative(this VertexData vd)
 		{
 			var vdatas = new VData[vd.Vertices.Length];
-			for(var i = 0; i < vdatas.Length; ++i)
+			for (var i = 0; i < vdatas.Length; ++i)
 			{
 				vdatas[i] = vd.Vertices[i].ToVData();
 			}
 
 			Native.CalculateTangents(vdatas, vd.Indices);
+
+			for (var i = 0; i < vdatas.Length; ++i)
+			{
+				vd.Vertices[i].Tangent = vdatas[i].Tangent.ToVector3();
+				vd.Vertices[i].BiTangent = vdatas[i].BiTangent.ToVector3();
+			}
+		}
+
+		public static void AssertAreEqual(Vector3 a, Vector3 b)
+		{
+			Assert.AreEqual(a.X, b.X, ZeroTolerance);
+			Assert.AreEqual(a.Y, b.Y, ZeroTolerance);
+			Assert.AreEqual(a.Z, b.Z, ZeroTolerance);
 		}
 	}
 }

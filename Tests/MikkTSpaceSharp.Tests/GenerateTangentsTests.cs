@@ -19,9 +19,20 @@ namespace MikkTSpaceSharp.Tests
 				{
 					var vd = part.GetVertexData();
 
+					var clone = vd.Clone();
+
+					// Calculate tangents through MikkTSpaceSharp
 					vd.CalculateTangets();
 
-					vd.CalculateTangentsNative();
+					// Calculate tangents through native wrapper
+					clone.CalculateTangentsNative();
+
+					// Compare
+					for(var i = 0; i < vd.Vertices.Length; ++i)
+					{
+						Utility.AssertAreEqual(vd.Vertices[i].Tangent, clone.Vertices[i].Tangent);
+						Utility.AssertAreEqual(vd.Vertices[i].BiTangent, clone.Vertices[i].BiTangent);
+					}
 				}
 			}
 		}
