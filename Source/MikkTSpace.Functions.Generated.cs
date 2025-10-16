@@ -8,38 +8,43 @@ namespace MikkTSpaceSharp
 	{
 		public static int g_iCells = 2048;
 
-		public static int genTangSpaceDefault(SMikkTSpaceContext pContext)
+		public static bool genTangSpaceDefault(SMikkTSpaceContext pContext)
 		{
 			return genTangSpace(pContext, 180);
 		}
 
-		public static int genTangSpace(SMikkTSpaceContext pContext, float fAngularThreshold)
+		public static bool genTangSpace(SMikkTSpaceContext pContext, float fAngularThreshold)
 		{
-			int* piTriListIn = null; int* piGroupTrianglesBuffer = null;
-			STriInfo[] pTriInfos = null;
-			SGroup* pGroups = null;
-			STSpace* psTspace = null;
-			int iNrTrianglesIn = 0; int f = 0; int t = 0; int i = 0;
-			int iNrTSPaces = 0; int iTotTris = 0; int iDegenTriangles = 0; int iNrMaxGroups = 0;
-			int iNrActiveGroups = 0; int index = 0;
-			int iNrFaces = pContext.m_getNumFaces();
-			int bRes = 0;
-			float fThresCos = (float)CRuntime.cos((double)(fAngularThreshold * (float)3.141592653589793 / 180));
+			var iNrFaces = pContext.m_getNumFaces();
+			var fThresCos = (float)CRuntime.cos(Utility.ToRadians(fAngularThreshold));
 			if ((pContext.m_getNumFaces == null) || (pContext.m_getNumVerticesOfFace == null) || (pContext.m_getPosition == null) || (pContext.m_getNormal == null) || (pContext.m_getTexCoord == null))
-				return 0;
-			for (f = 0; f < iNrFaces; f++)
+			{
+				return false;
+			}
+			
+			// count triangles on supported faces
+			var iNrTrianglesIn = 0;
+			for (var f = 0; f < iNrFaces; f++)
 			{
 				int verts = pContext.m_getNumVerticesOfFace(f);
 				if (verts == 3)
+				{
 					++iNrTrianglesIn;
+				}
 				else if (verts == 4)
+				{
 					iNrTrianglesIn += 2;
+				}
 			}
 
 			if (iNrTrianglesIn <= 0)
-				return 0;
-			piTriListIn = (int*)CRuntime.malloc((ulong)(sizeof(int) * 3 * iNrTrianglesIn));
-			pTriInfos = new STriInfo[iNrTrianglesIn];
+			{
+				return false;
+			}
+
+			// allocate memory for an index list
+			var piTriListIn = (int*)CRuntime.malloc(sizeof(int) * 3 * iNrTrianglesIn);
+			var pTriInfos = new STriInfo[iNrTrianglesIn];
 			for (var k = 0; k < pTriInfos.Length; ++k)
 			{
 				pTriInfos[k] = new STriInfo();
@@ -48,15 +53,23 @@ namespace MikkTSpaceSharp
 			if ((piTriListIn == null) || (pTriInfos == null))
 			{
 				if (piTriListIn != null)
+				{
 					CRuntime.free(piTriListIn);
-				return 0;
+				}
+
+				return false;
 			}
 
-			iNrTSPaces = GenerateInitialVerticesIndexList(pTriInfos, piTriListIn, pContext, iNrTrianglesIn);
+			// make an initial triangle --> face index list
+			var iNrTSPaces = GenerateInitialVerticesIndexList(pTriInfos, piTriListIn, pContext, iNrTrianglesIn);
+
+			// make a welded index list of identical positions and attributes (pos, norm, texc)
 			GenerateSharedVerticesIndexList(piTriListIn, pContext, iNrTrianglesIn);
-			iTotTris = iNrTrianglesIn;
-			iDegenTriangles = 0;
-			for (t = 0; t < iTotTris; t++)
+
+			// Mark all degenerate triangles
+			var iTotTris = iNrTrianglesIn;
+			var iDegenTriangles = 0;
+			for (var t = 0; t < iTotTris; t++)
 			{
 				int i0 = piTriListIn[t * 3 + 0];
 				int i1 = piTriListIn[t * 3 + 1];
@@ -72,33 +85,51 @@ namespace MikkTSpaceSharp
 			}
 
 			iNrTrianglesIn = iTotTris - iDegenTriangles;
+
+			// mark all triangle pairs that belong to a quad with only one
+			// good triangle. These need special treatment in DegenEpilogue().
+			// Additionally, move all good triangles to the start of
+			// pTriInfos[] and piTriListIn[] without changing order and
+			// put the degenerate triangles last.
 			DegenPrologue(pTriInfos, piTriListIn, iNrTrianglesIn, iTotTris);
+
+			// evaluate triangle level attributes and neighbor list
 			InitTriInfo(pTriInfos, piTriListIn, pContext, iNrTrianglesIn);
-			iNrMaxGroups = iNrTrianglesIn * 3;
-			pGroups = (SGroup*)CRuntime.malloc((ulong)(sizeof(SGroup) * iNrMaxGroups));
-			piGroupTrianglesBuffer = (int*)CRuntime.malloc((ulong)(sizeof(int) * iNrTrianglesIn * 3));
+
+			// based on the 4 rules, identify groups based on connectivity
+			var iNrMaxGroups = iNrTrianglesIn * 3;
+			var pGroups = (SGroup*)CRuntime.malloc(sizeof(SGroup) * iNrMaxGroups);
+			var piGroupTrianglesBuffer = (int*)CRuntime.malloc(sizeof(int) * iNrTrianglesIn * 3);
 			if ((pGroups == null) || (piGroupTrianglesBuffer == null))
 			{
 				if (pGroups != null)
+				{
 					CRuntime.free(pGroups);
+				}
+
 				if (piGroupTrianglesBuffer != null)
+				{
 					CRuntime.free(piGroupTrianglesBuffer);
+				}
+				
 				CRuntime.free(piTriListIn);
-				return 0;
+				
+				return false;
 			}
 
-			iNrActiveGroups = Build4RuleGroups(pTriInfos, pGroups, piGroupTrianglesBuffer, piTriListIn, iNrTrianglesIn);
-			psTspace = (STSpace*)CRuntime.malloc((ulong)(sizeof(STSpace) * iNrTSPaces));
+			var iNrActiveGroups = Build4RuleGroups(pTriInfos, pGroups, piGroupTrianglesBuffer, piTriListIn, iNrTrianglesIn);
+			var psTspace = (STSpace*)CRuntime.malloc(sizeof(STSpace) * iNrTSPaces);
 			if (psTspace == null)
 			{
 				CRuntime.free(piTriListIn);
 				CRuntime.free(pGroups);
 				CRuntime.free(piGroupTrianglesBuffer);
-				return 0;
+
+				return false;
 			}
 
-			CRuntime.memset(psTspace, 0, (ulong)(sizeof(STSpace) * iNrTSPaces));
-			for (t = 0; t < iNrTSPaces; t++)
+			CRuntime.memset(psTspace, 0, sizeof(STSpace) * iNrTSPaces);
+			for (var t = 0; t < iNrTSPaces; t++)
 			{
 				psTspace[t].vOs.x = 1;
 				psTspace[t].vOs.y = 0;
@@ -110,25 +141,39 @@ namespace MikkTSpaceSharp
 				psTspace[t].fMagT = 1;
 			}
 
-			bRes = GenerateTSpaces(psTspace, pTriInfos, pGroups, iNrActiveGroups, piTriListIn, (float)fThresCos, pContext);
+			// make tspaces, each group is split up into subgroups if necessary
+			// based on fAngularThreshold. Finally a tangent space is made for
+			// every resulting subgroup
+			var bRes = GenerateTSpaces(psTspace, pTriInfos, pGroups, iNrActiveGroups, piTriListIn, fThresCos, pContext);
+
+			// clean up
 			CRuntime.free(pGroups);
 			CRuntime.free(piGroupTrianglesBuffer);
 			if (bRes == 0)
 			{
+				// clean up and return false
 				CRuntime.free(piTriListIn);
 				CRuntime.free(psTspace);
-				return 0;
+				return false;
 			}
 
+			// degenerate quads with one good triangle will be fixed by copying a space from
+			// the good triangle to the coinciding vertex.
+			// all other degenerate triangles will just copy a space from any good triangle
+			// with the same welded index in piTriListIn[].
 			DegenEpilogue(psTspace, pTriInfos, piTriListIn, pContext, iNrTrianglesIn, iTotTris);
+
 			CRuntime.free(piTriListIn);
-			index = 0;
-			for (f = 0; f < iNrFaces; f++)
+
+			var index = 0;
+			for (var f = 0; f < iNrFaces; f++)
 			{
 				int verts = pContext.m_getNumVerticesOfFace(f);
 				if ((verts != 3) && (verts != 4))
 					continue;
-				for (i = 0; i < verts; i++)
+
+				// set data
+				for (var i = 0; i < verts; i++)
 				{
 					STSpace* pTSpace = &psTspace[index];
 					if (pContext.m_setTSpace != null)
@@ -140,12 +185,14 @@ namespace MikkTSpaceSharp
 					{
 						pContext.m_setTSpaceBasic(pTSpace->vOs, pTSpace->bOrient == 1 ? 1 : (-1), f, i);
 					}
+
 					++index;
 				}
 			}
 
 			CRuntime.free(psTspace);
-			return 1;
+
+			return true;
 		}
 
 		public static int veq(SVec3 v1, SVec3 v2)

@@ -176,7 +176,7 @@ namespace MikkTSpaceSharp.Tests
 			};
 
 			var result = genTangSpaceDefault(ctx);
-			if (result == 0)
+			if (!result)
 			{
 				throw new Exception("Tangents generation failed");
 			}
@@ -199,7 +199,7 @@ namespace MikkTSpaceSharp.Tests
 			};
 
 			var result = genTangSpaceDefault(ctx);
-			if (result == 0)
+			if (!result)
 			{
 				throw new Exception("Tangents generation failed");
 			}
