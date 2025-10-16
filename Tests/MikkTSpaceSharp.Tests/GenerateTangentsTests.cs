@@ -1,4 +1,5 @@
 ﻿using DigitalRiseModel;
+using Hebron.Runtime;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace MikkTSpaceSharp.Tests
@@ -57,6 +58,8 @@ namespace MikkTSpaceSharp.Tests
 					}
 				}
 			}
+
+			Assert.AreEqual(0, MikkTSpaceSharpMemoryStats.Allocations);
 		}
 	}
 }

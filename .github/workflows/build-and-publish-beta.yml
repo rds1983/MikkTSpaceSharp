@@ -21,11 +21,7 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: '8.0.x'
-    - name: Setup Cpp
-      uses: aminya/setup-cpp@v1
-      with:
-        compiler: msvc
     - name: Build MikkTSpaceSharp
-      run: dotnet build MikkTSpaceSharp.sln --configuration Release
+      run: dotnet build MikkTSpaceSharp.Simple.sln --configuration Release
     - name: Test
-      run: dotnet test MikkTSpaceSharp.sln
+      run: dotnet test MikkTSpaceSharp.Simple.sln
