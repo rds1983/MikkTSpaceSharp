@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "MikkTSpaceSharp.Tests": {
+      "commandName": "Project",
+      "nativeDebugging": true
+    }
+  }
+}
