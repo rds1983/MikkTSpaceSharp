@@ -22,6 +22,6 @@ jobs:
       with:
         dotnet-version: '8.0.x'
     - name: Build MikkTSpaceSharp
-      run: dotnet build MikkTSpaceSharp.Simple.sln --configuration Release
+      run: dotnet build MikkTSpaceSharp.sln --configuration Release
     - name: Test
-      run: dotnet test MikkTSpaceSharp.Simple.sln
+      run: dotnet test MikkTSpaceSharp.sln
