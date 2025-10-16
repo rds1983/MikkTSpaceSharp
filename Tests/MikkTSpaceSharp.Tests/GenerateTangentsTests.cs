@@ -6,12 +6,21 @@ namespace MikkTSpaceSharp.Tests
 	[TestClass]
 	public sealed class GenerateTangentsTests
 	{
+		public const float DefaultEpsilon = 1e-4f;
+
 		[TestMethod]
-		public void GenerateTangets()
+		[DataRow("AlphaDeadTree.glb")]
+		[DataRow("dude.glb")]
+		[DataRow("banner.glb")]
+		[DataRow("Hotel01.glb")]
+		[DataRow("FlightHelmet.glb")]
+		[DataRow("BarramundiFish.glb")]
+
+		public void GenerateTangets(string fileName, float epsilon = DefaultEpsilon)
 		{
 			var manager = Utility.CreateAssetManager();
 
-			var model = manager.LoadModel(TestsEnvironment.GraphicsDevice, "AlphaDeadTree.glb");
+			var model = manager.LoadModel(TestsEnvironment.GraphicsDevice, fileName, ModelLoadFlags.IgnoreMaterials | ModelLoadFlags.ReadableBuffers);
 
 			foreach(var mesh in model.Meshes)
 			{
@@ -31,8 +40,8 @@ namespace MikkTSpaceSharp.Tests
 					// Compare
 					for(var i = 0; i < vd.Vertices.Length; ++i)
 					{
-						Utility.AssertAreEqual(a.Vertices[i].Tangent, b.Vertices[i].Tangent);
-						Utility.AssertAreEqual(a.Vertices[i].BiTangent, b.Vertices[i].BiTangent);
+						Utility.AssertAreEqual(a.Vertices[i].Tangent, b.Vertices[i].Tangent, epsilon);
+						Utility.AssertAreEqual(a.Vertices[i].BiTangent, b.Vertices[i].BiTangent, epsilon);
 					}
 
 					// Now do basic calculations
@@ -44,7 +53,7 @@ namespace MikkTSpaceSharp.Tests
 
 					for (var i = 0; i < vd.Vertices.Length; ++i)
 					{
-						Utility.AssertAreEqual(a.Vertices[i].TangentBasic, b.Vertices[i].TangentBasic);
+						Utility.AssertAreEqual(a.Vertices[i].TangentBasic, b.Vertices[i].TangentBasic, epsilon);
 					}
 				}
 			}

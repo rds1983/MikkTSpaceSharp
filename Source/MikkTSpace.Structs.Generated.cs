@@ -36,6 +36,8 @@ namespace MikkTSpaceSharp
 				x = xx;
 				y = yy;
 			}
+
+			public override string ToString() => $"{x}, {y}";
 		}
 
 		public struct SVec3
@@ -50,6 +52,8 @@ namespace MikkTSpaceSharp
 				y = yy;
 				z = zz;
 			}
+
+			public override string ToString() => $"{x}, {y}, {z}";
 		}
 
 		public unsafe struct SSubGroup
