@@ -176,15 +176,8 @@ namespace MikkTSpaceSharp
 				for (var i = 0; i < verts; i++)
 				{
 					STSpace* pTSpace = &psTspace[index];
-					if (pContext.m_setTSpace != null)
-					{
-						pContext.m_setTSpace(pTSpace->vOs, pTSpace->vOt, pTSpace->fMagS, pTSpace->fMagT, pTSpace->bOrient, f, i);
-					}
-
-					if (pContext.m_setTSpaceBasic != null)
-					{
-						pContext.m_setTSpaceBasic(pTSpace->vOs, pTSpace->bOrient == 1 ? 1 : (-1), f, i);
-					}
+					pContext.m_setTSpace?.Invoke(pTSpace->vOs, pTSpace->vOt, pTSpace->fMagS, pTSpace->fMagT, pTSpace->bOrient, f, i);
+					pContext.m_setTSpaceBasic?.Invoke(pTSpace->vOs, pTSpace->bOrient == 1 ? 1 : (-1), f, i);
 
 					++index;
 				}
@@ -197,9 +190,9 @@ namespace MikkTSpaceSharp
 
 		public static int GenerateInitialVerticesIndexList(STriInfo[] pTriInfos, int* piTriList_out, SMikkTSpaceContext pContext, int iNrTrianglesIn)
 		{
-			int iTSpacesOffs = 0; int f = 0; int t = 0;
-			int iDstTriIndex = 0;
-			for (f = 0; f < pContext.m_getNumFaces(); f++)
+			var iTSpacesOffs = 0;
+			var iDstTriIndex = 0;
+			for (var f = 0; f < pContext.m_getNumFaces(); f++)
 			{
 				int verts = pContext.m_getNumVerticesOfFace(f);
 				if ((verts != 3) && (verts != 4))
@@ -215,7 +208,7 @@ namespace MikkTSpaceSharp
 					piTriList_out[iDstTriIndex * 3 + 0] = MakeIndex(f, 0);
 					piTriList_out[iDstTriIndex * 3 + 1] = MakeIndex(f, 1);
 					piTriList_out[iDstTriIndex * 3 + 2] = MakeIndex(f, 2);
-					++iDstTriIndex;
+					++iDstTriIndex; // next
 				}
 				else
 				{
@@ -225,6 +218,9 @@ namespace MikkTSpaceSharp
 					}
 
 					{
+						// need an order independent way to evaluate
+						// tspace on quads. This is done by splitting
+						// along the shortest diagonal.
 						int i0 = MakeIndex(f, 0);
 						int i1 = MakeIndex(f, 1);
 						int i2 = MakeIndex(f, 2);
@@ -307,11 +303,12 @@ namespace MikkTSpaceSharp
 				iTSpacesOffs += verts;
 			}
 
-			for (t = 0; t < iNrTrianglesIn; t++)
+			for (var t = 0; t < iNrTrianglesIn; t++)
 			{
 				pTriInfos[t].iFlag = 0;
 			}
 
+			// return total amount of tspaces
 			return iTSpacesOffs;
 		}
 
