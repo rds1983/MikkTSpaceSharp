@@ -8,11 +8,11 @@ namespace MikkTSpaceSharp
 {
 	unsafe partial class MikkTSpace
 	{
-		public static int g_iCells = (int)(2048);
+		public static int g_iCells = 2048;
 
 		public static int genTangSpaceDefault(SMikkTSpaceContext pContext)
 		{
-			return (int)(genTangSpace(pContext, (float)(180)));
+			return genTangSpace(pContext, 180);
 		}
 
 		public static int genTangSpace(SMikkTSpaceContext pContext, float fAngularThreshold)
@@ -21,25 +21,25 @@ namespace MikkTSpaceSharp
 			STriInfo[] pTriInfos = null;
 			SGroup* pGroups = null;
 			STSpace* psTspace = null;
-			int iNrTrianglesIn = (int)(0); int f = (int)(0); int t = (int)(0); int i = (int)(0);
-			int iNrTSPaces = (int)(0); int iTotTris = (int)(0); int iDegenTriangles = (int)(0); int iNrMaxGroups = (int)(0);
-			int iNrActiveGroups = (int)(0); int index = (int)(0);
-			int iNrFaces = (int)(pContext.m_getNumFaces());
-			int bRes = (int)(0);
+			int iNrTrianglesIn = 0; int f = 0; int t = 0; int i = 0;
+			int iNrTSPaces = 0; int iTotTris = 0; int iDegenTriangles = 0; int iNrMaxGroups = 0;
+			int iNrActiveGroups = 0; int index = 0;
+			int iNrFaces = pContext.m_getNumFaces();
+			int bRes = 0;
 			float fThresCos = (float)(CRuntime.cos((double)((fAngularThreshold * (float)(3.141592653589793)) / 180)));
 			if ((((((pContext.m_getNumFaces) == (null)) || ((pContext.m_getNumVerticesOfFace) == (null))) || ((pContext.m_getPosition) == (null))) || ((pContext.m_getNormal) == (null))) || ((pContext.m_getTexCoord) == (null)))
-				return (int)(0);
-			for (f = (int)(0); (f) < (iNrFaces); f++)
+				return 0;
+			for (f = 0; (f) < (iNrFaces); f++)
 			{
-				int verts = (int)(pContext.m_getNumVerticesOfFace((int)(f)));
+				int verts = pContext.m_getNumVerticesOfFace(f);
 				if ((verts) == (3))
 					++iNrTrianglesIn;
 				else if ((verts) == (4))
-					iNrTrianglesIn += (int)(2);
+					iNrTrianglesIn += 2;
 			}
 
 			if ((iNrTrianglesIn) <= (0))
-				return (int)(0);
+				return 0;
 			piTriListIn = (int*)(CRuntime.malloc((ulong)(sizeof(int) * 3 * iNrTrianglesIn)));
 			pTriInfos = new STriInfo[iNrTrianglesIn];
 			for (var k = 0; k < pTriInfos.Length; ++k)
@@ -51,32 +51,32 @@ namespace MikkTSpaceSharp
 			{
 				if (piTriListIn != null)
 					CRuntime.free(piTriListIn);
-				return (int)(0);
+				return 0;
 			}
 
-			iNrTSPaces = (int)(GenerateInitialVerticesIndexList(pTriInfos, piTriListIn, pContext, (int)(iNrTrianglesIn)));
-			GenerateSharedVerticesIndexList(piTriListIn, pContext, (int)(iNrTrianglesIn));
-			iTotTris = (int)(iNrTrianglesIn);
-			iDegenTriangles = (int)(0);
-			for (t = (int)(0); (t) < (iTotTris); t++)
+			iNrTSPaces = GenerateInitialVerticesIndexList(pTriInfos, piTriListIn, pContext, iNrTrianglesIn);
+			GenerateSharedVerticesIndexList(piTriListIn, pContext, iNrTrianglesIn);
+			iTotTris = iNrTrianglesIn;
+			iDegenTriangles = 0;
+			for (t = 0; (t) < (iTotTris); t++)
 			{
-				int i0 = (int)(piTriListIn[t * 3 + 0]);
-				int i1 = (int)(piTriListIn[t * 3 + 1]);
-				int i2 = (int)(piTriListIn[t * 3 + 2]);
-				SVec3 p0 = (SVec3)(GetPosition(pContext, (int)(i0)));
-				SVec3 p1 = (SVec3)(GetPosition(pContext, (int)(i1)));
-				SVec3 p2 = (SVec3)(GetPosition(pContext, (int)(i2)));
-				if ((((veq((SVec3)(p0), (SVec3)(p1))) != 0) || ((veq((SVec3)(p0), (SVec3)(p2))) != 0)) || ((veq((SVec3)(p1), (SVec3)(p2))) != 0))
+				int i0 = piTriListIn[t * 3 + 0];
+				int i1 = piTriListIn[t * 3 + 1];
+				int i2 = piTriListIn[t * 3 + 2];
+				SVec3 p0 = GetPosition(pContext, i0);
+				SVec3 p1 = GetPosition(pContext, i1);
+				SVec3 p2 = GetPosition(pContext, i2);
+				if ((((veq(p0, p1)) != 0) || ((veq(p0, p2)) != 0)) || ((veq(p1, p2)) != 0))
 				{
-					pTriInfos[t].iFlag |= (int)(1);
+					pTriInfos[t].iFlag |= 1;
 					++iDegenTriangles;
 				}
 			}
 
-			iNrTrianglesIn = (int)(iTotTris - iDegenTriangles);
-			DegenPrologue(pTriInfos, piTriListIn, (int)(iNrTrianglesIn), (int)(iTotTris));
-			InitTriInfo(pTriInfos, piTriListIn, pContext, (int)(iNrTrianglesIn));
-			iNrMaxGroups = (int)(iNrTrianglesIn * 3);
+			iNrTrianglesIn = iTotTris - iDegenTriangles;
+			DegenPrologue(pTriInfos, piTriListIn, iNrTrianglesIn, iTotTris);
+			InitTriInfo(pTriInfos, piTriListIn, pContext, iNrTrianglesIn);
+			iNrMaxGroups = iNrTrianglesIn * 3;
 			pGroups = (SGroup*)(CRuntime.malloc((ulong)(sizeof(SGroup) * iNrMaxGroups)));
 			piGroupTrianglesBuffer = (int*)(CRuntime.malloc((ulong)(sizeof(int) * iNrTrianglesIn * 3)));
 			if (((pGroups) == (null)) || ((piGroupTrianglesBuffer) == (null)))
@@ -86,68 +86,68 @@ namespace MikkTSpaceSharp
 				if (piGroupTrianglesBuffer != null)
 					CRuntime.free(piGroupTrianglesBuffer);
 				CRuntime.free(piTriListIn);
-				return (int)(0);
+				return 0;
 			}
 
-			iNrActiveGroups = (int)(Build4RuleGroups(pTriInfos, pGroups, piGroupTrianglesBuffer, piTriListIn, (int)(iNrTrianglesIn)));
+			iNrActiveGroups = Build4RuleGroups(pTriInfos, pGroups, piGroupTrianglesBuffer, piTriListIn, iNrTrianglesIn);
 			psTspace = (STSpace*)(CRuntime.malloc((ulong)(sizeof(STSpace) * iNrTSPaces)));
 			if ((psTspace) == (null))
 			{
 				CRuntime.free(piTriListIn);
 				CRuntime.free(pGroups);
 				CRuntime.free(piGroupTrianglesBuffer);
-				return (int)(0);
+				return 0;
 			}
 
-			CRuntime.memset(psTspace, (int)(0), (ulong)(sizeof(STSpace) * iNrTSPaces));
-			for (t = (int)(0); (t) < (iNrTSPaces); t++)
+			CRuntime.memset(psTspace, 0, (ulong)(sizeof(STSpace) * iNrTSPaces));
+			for (t = 0; (t) < (iNrTSPaces); t++)
 			{
-				psTspace[t].vOs.x = (float)(1);
-				psTspace[t].vOs.y = (float)(0);
-				psTspace[t].vOs.z = (float)(0);
-				psTspace[t].fMagS = (float)(1);
-				psTspace[t].vOt.x = (float)(0);
-				psTspace[t].vOt.y = (float)(1);
-				psTspace[t].vOt.z = (float)(0);
-				psTspace[t].fMagT = (float)(1);
+				psTspace[t].vOs.x = 1;
+				psTspace[t].vOs.y = 0;
+				psTspace[t].vOs.z = 0;
+				psTspace[t].fMagS = 1;
+				psTspace[t].vOt.x = 0;
+				psTspace[t].vOt.y = 1;
+				psTspace[t].vOt.z = 0;
+				psTspace[t].fMagT = 1;
 			}
 
-			bRes = (int)(GenerateTSpaces(psTspace, pTriInfos, pGroups, (int)(iNrActiveGroups), piTriListIn, (float)(fThresCos), pContext));
+			bRes = GenerateTSpaces(psTspace, pTriInfos, pGroups, iNrActiveGroups, piTriListIn, (float)(fThresCos), pContext);
 			CRuntime.free(pGroups);
 			CRuntime.free(piGroupTrianglesBuffer);
 			if (bRes == 0)
 			{
 				CRuntime.free(piTriListIn);
 				CRuntime.free(psTspace);
-				return (int)(0);
+				return 0;
 			}
 
-			DegenEpilogue(psTspace, pTriInfos, piTriListIn, pContext, (int)(iNrTrianglesIn), (int)(iTotTris));
+			DegenEpilogue(psTspace, pTriInfos, piTriListIn, pContext, iNrTrianglesIn, iTotTris);
 			CRuntime.free(piTriListIn);
-			index = (int)(0);
-			for (f = (int)(0); (f) < (iNrFaces); f++)
+			index = 0;
+			for (f = 0; (f) < (iNrFaces); f++)
 			{
-				int verts = (int)(pContext.m_getNumVerticesOfFace((int)(f)));
+				int verts = pContext.m_getNumVerticesOfFace(f);
 				if ((verts != 3) && (verts != 4))
 					continue;
-				for (i = (int)(0); (i) < (verts); i++)
+				for (i = 0; (i) < (verts); i++)
 				{
 					STSpace* pTSpace = &psTspace[index];
 					if (pContext.m_setTSpace != null)
 					{
-						pContext.m_setTSpace(pTSpace->vOs, pTSpace->vOt, (float)(pTSpace->fMagS), (float)(pTSpace->fMagT), (int)(pTSpace->bOrient), (int)(f), (int)(i));
+						pContext.m_setTSpace(pTSpace->vOs, pTSpace->vOt, pTSpace->fMagS, pTSpace->fMagT, pTSpace->bOrient, f, i);
 					}
 
 					if (pContext.m_setTSpaceBasic != null)
 					{
-						pContext.m_setTSpaceBasic(pTSpace->vOs, (float)((pTSpace->bOrient) == (1) ? 1 : (-1)), (int)(f), (int)(i));
+						pContext.m_setTSpaceBasic(pTSpace->vOs, (pTSpace->bOrient) == (1) ? 1 : (-1), f, i);
 					}
 					++index;
 				}
 			}
 
 			CRuntime.free(psTspace);
-			return (int)(1);
+			return 1;
 		}
 
 		public static int veq(SVec3 v1, SVec3 v2)
@@ -158,28 +158,28 @@ namespace MikkTSpaceSharp
 		public static SVec3 vadd(SVec3 v1, SVec3 v2)
 		{
 			SVec3 vRes = new SVec3();
-			vRes.x = (float)(v1.x + v2.x);
-			vRes.y = (float)(v1.y + v2.y);
-			vRes.z = (float)(v1.z + v2.z);
-			return (SVec3)(vRes);
+			vRes.x = v1.x + v2.x;
+			vRes.y = v1.y + v2.y;
+			vRes.z = v1.z + v2.z;
+			return vRes;
 		}
 
 		public static SVec3 vsub(SVec3 v1, SVec3 v2)
 		{
 			SVec3 vRes = new SVec3();
-			vRes.x = (float)(v1.x - v2.x);
-			vRes.y = (float)(v1.y - v2.y);
-			vRes.z = (float)(v1.z - v2.z);
-			return (SVec3)(vRes);
+			vRes.x = v1.x - v2.x;
+			vRes.y = v1.y - v2.y;
+			vRes.z = v1.z - v2.z;
+			return vRes;
 		}
 
 		public static SVec3 vscale(float fS, SVec3 v)
 		{
 			SVec3 vRes = new SVec3();
-			vRes.x = (float)(fS * v.x);
-			vRes.y = (float)(fS * v.y);
-			vRes.z = (float)(fS * v.z);
-			return (SVec3)(vRes);
+			vRes.x = fS * v.x;
+			vRes.y = fS * v.y;
+			vRes.z = fS * v.z;
+			return vRes;
 		}
 
 		public static float LengthSquared(SVec3 v)
@@ -189,12 +189,12 @@ namespace MikkTSpaceSharp
 
 		public static float Length(SVec3 v)
 		{
-			return (float)(CRuntime.sqrtf((float)(LengthSquared((SVec3)(v)))));
+			return (float)(CRuntime.sqrtf((float)(LengthSquared(v))));
 		}
 
 		public static SVec3 Normalize(SVec3 v)
 		{
-			return (SVec3)(vscale((float)(1 / Length((SVec3)(v))), (SVec3)(v)));
+			return vscale((float)(1 / Length(v)), v);
 		}
 
 		public static float vdot(SVec3 v1, SVec3 v2)
@@ -209,170 +209,170 @@ namespace MikkTSpaceSharp
 
 		public static int VNotZero(SVec3 v)
 		{
-			return ((((NotZero((float)(v.x))) != 0) || ((NotZero((float)(v.y))) != 0)) || ((NotZero((float)(v.z))) != 0) ? 1 : 0);
+			return ((((NotZero(v.x)) != 0) || ((NotZero(v.y)) != 0)) || ((NotZero(v.z)) != 0) ? 1 : 0);
 		}
 
 		public static int GenerateInitialVerticesIndexList(STriInfo[] pTriInfos, int* piTriList_out, SMikkTSpaceContext pContext, int iNrTrianglesIn)
 		{
-			int iTSpacesOffs = (int)(0); int f = (int)(0); int t = (int)(0);
-			int iDstTriIndex = (int)(0);
-			for (f = (int)(0); (f) < (pContext.m_getNumFaces()); f++)
+			int iTSpacesOffs = 0; int f = 0; int t = 0;
+			int iDstTriIndex = 0;
+			for (f = 0; (f) < (pContext.m_getNumFaces()); f++)
 			{
-				int verts = (int)(pContext.m_getNumVerticesOfFace((int)(f)));
+				int verts = pContext.m_getNumVerticesOfFace(f);
 				if ((verts != 3) && (verts != 4))
 					continue;
-				pTriInfos[iDstTriIndex].iOrgFaceNumber = (int)(f);
-				pTriInfos[iDstTriIndex].iTSpacesOffs = (int)(iTSpacesOffs);
+				pTriInfos[iDstTriIndex].iOrgFaceNumber = f;
+				pTriInfos[iDstTriIndex].iTSpacesOffs = iTSpacesOffs;
 				if ((verts) == (3))
 				{
 					byte[] pVerts = pTriInfos[iDstTriIndex].vert_num;
-					pVerts[0] = (byte)(0);
-					pVerts[1] = (byte)(1);
-					pVerts[2] = (byte)(2);
-					piTriList_out[iDstTriIndex * 3 + 0] = (int)(MakeIndex((int)(f), (int)(0)));
-					piTriList_out[iDstTriIndex * 3 + 1] = (int)(MakeIndex((int)(f), (int)(1)));
-					piTriList_out[iDstTriIndex * 3 + 2] = (int)(MakeIndex((int)(f), (int)(2)));
+					pVerts[0] = 0;
+					pVerts[1] = 1;
+					pVerts[2] = 2;
+					piTriList_out[iDstTriIndex * 3 + 0] = MakeIndex(f, 0);
+					piTriList_out[iDstTriIndex * 3 + 1] = MakeIndex(f, 1);
+					piTriList_out[iDstTriIndex * 3 + 2] = MakeIndex(f, 2);
 					++iDstTriIndex;
 				}
 				else
 				{
 					{
-						pTriInfos[iDstTriIndex + 1].iOrgFaceNumber = (int)(f);
-						pTriInfos[iDstTriIndex + 1].iTSpacesOffs = (int)(iTSpacesOffs);
+						pTriInfos[iDstTriIndex + 1].iOrgFaceNumber = f;
+						pTriInfos[iDstTriIndex + 1].iTSpacesOffs = iTSpacesOffs;
 					}
 
 					{
-						int i0 = (int)(MakeIndex((int)(f), (int)(0)));
-						int i1 = (int)(MakeIndex((int)(f), (int)(1)));
-						int i2 = (int)(MakeIndex((int)(f), (int)(2)));
-						int i3 = (int)(MakeIndex((int)(f), (int)(3)));
-						SVec3 T0 = (SVec3)(GetTexCoord(pContext, (int)(i0)));
-						SVec3 T1 = (SVec3)(GetTexCoord(pContext, (int)(i1)));
-						SVec3 T2 = (SVec3)(GetTexCoord(pContext, (int)(i2)));
-						SVec3 T3 = (SVec3)(GetTexCoord(pContext, (int)(i3)));
-						float distSQ_02 = (float)(LengthSquared((SVec3)(vsub((SVec3)(T2), (SVec3)(T0)))));
-						float distSQ_13 = (float)(LengthSquared((SVec3)(vsub((SVec3)(T3), (SVec3)(T1)))));
+						int i0 = MakeIndex(f, 0);
+						int i1 = MakeIndex(f, 1);
+						int i2 = MakeIndex(f, 2);
+						int i3 = MakeIndex(f, 3);
+						SVec3 T0 = GetTexCoord(pContext, i0);
+						SVec3 T1 = GetTexCoord(pContext, i1);
+						SVec3 T2 = GetTexCoord(pContext, i2);
+						SVec3 T3 = GetTexCoord(pContext, i3);
+						float distSQ_02 = (float)(LengthSquared(vsub(T2, T0)));
+						float distSQ_13 = (float)(LengthSquared(vsub(T3, T1)));
 						int bQuadDiagIs_02 = 0;
 						if ((distSQ_02) < (distSQ_13))
-							bQuadDiagIs_02 = (int)(1);
+							bQuadDiagIs_02 = 1;
 						else if ((distSQ_13) < (distSQ_02))
-							bQuadDiagIs_02 = (int)(0);
+							bQuadDiagIs_02 = 0;
 						else
 						{
-							SVec3 P0 = (SVec3)(GetPosition(pContext, (int)(i0)));
-							SVec3 P1 = (SVec3)(GetPosition(pContext, (int)(i1)));
-							SVec3 P2 = (SVec3)(GetPosition(pContext, (int)(i2)));
-							SVec3 P3 = (SVec3)(GetPosition(pContext, (int)(i3)));
-							float distSQ_02_2 = (float)(LengthSquared((SVec3)(vsub((SVec3)(P2), (SVec3)(P0)))));
-							float distSQ_13_2 = (float)(LengthSquared((SVec3)(vsub((SVec3)(P3), (SVec3)(P1)))));
-							bQuadDiagIs_02 = (int)((distSQ_13_2) < (distSQ_02_2) ? 0 : 1);
+							SVec3 P0 = GetPosition(pContext, i0);
+							SVec3 P1 = GetPosition(pContext, i1);
+							SVec3 P2 = GetPosition(pContext, i2);
+							SVec3 P3 = GetPosition(pContext, i3);
+							float distSQ_02_2 = (float)(LengthSquared(vsub(P2, P0)));
+							float distSQ_13_2 = (float)(LengthSquared(vsub(P3, P1)));
+							bQuadDiagIs_02 = (distSQ_13_2) < (distSQ_02_2) ? 0 : 1;
 						}
 
 						if ((bQuadDiagIs_02) != 0)
 						{
 							{
 								byte[] pVerts_A = pTriInfos[iDstTriIndex].vert_num;
-								pVerts_A[0] = (byte)(0);
-								pVerts_A[1] = (byte)(1);
-								pVerts_A[2] = (byte)(2);
+								pVerts_A[0] = 0;
+								pVerts_A[1] = 1;
+								pVerts_A[2] = 2;
 							}
 
-							piTriList_out[iDstTriIndex * 3 + 0] = (int)(i0);
-							piTriList_out[iDstTriIndex * 3 + 1] = (int)(i1);
-							piTriList_out[iDstTriIndex * 3 + 2] = (int)(i2);
+							piTriList_out[iDstTriIndex * 3 + 0] = i0;
+							piTriList_out[iDstTriIndex * 3 + 1] = i1;
+							piTriList_out[iDstTriIndex * 3 + 2] = i2;
 							++iDstTriIndex;
 							{
 								byte[] pVerts_B = pTriInfos[iDstTriIndex].vert_num;
-								pVerts_B[0] = (byte)(0);
-								pVerts_B[1] = (byte)(2);
-								pVerts_B[2] = (byte)(3);
+								pVerts_B[0] = 0;
+								pVerts_B[1] = 2;
+								pVerts_B[2] = 3;
 							}
 
-							piTriList_out[iDstTriIndex * 3 + 0] = (int)(i0);
-							piTriList_out[iDstTriIndex * 3 + 1] = (int)(i2);
-							piTriList_out[iDstTriIndex * 3 + 2] = (int)(i3);
+							piTriList_out[iDstTriIndex * 3 + 0] = i0;
+							piTriList_out[iDstTriIndex * 3 + 1] = i2;
+							piTriList_out[iDstTriIndex * 3 + 2] = i3;
 							++iDstTriIndex;
 						}
 						else
 						{
 							{
 								byte[] pVerts_A = pTriInfos[iDstTriIndex].vert_num;
-								pVerts_A[0] = (byte)(0);
-								pVerts_A[1] = (byte)(1);
-								pVerts_A[2] = (byte)(3);
+								pVerts_A[0] = 0;
+								pVerts_A[1] = 1;
+								pVerts_A[2] = 3;
 							}
 
-							piTriList_out[iDstTriIndex * 3 + 0] = (int)(i0);
-							piTriList_out[iDstTriIndex * 3 + 1] = (int)(i1);
-							piTriList_out[iDstTriIndex * 3 + 2] = (int)(i3);
+							piTriList_out[iDstTriIndex * 3 + 0] = i0;
+							piTriList_out[iDstTriIndex * 3 + 1] = i1;
+							piTriList_out[iDstTriIndex * 3 + 2] = i3;
 							++iDstTriIndex;
 							{
 								byte[] pVerts_B = pTriInfos[iDstTriIndex].vert_num;
-								pVerts_B[0] = (byte)(1);
-								pVerts_B[1] = (byte)(2);
-								pVerts_B[2] = (byte)(3);
+								pVerts_B[0] = 1;
+								pVerts_B[1] = 2;
+								pVerts_B[2] = 3;
 							}
 
-							piTriList_out[iDstTriIndex * 3 + 0] = (int)(i1);
-							piTriList_out[iDstTriIndex * 3 + 1] = (int)(i2);
-							piTriList_out[iDstTriIndex * 3 + 2] = (int)(i3);
+							piTriList_out[iDstTriIndex * 3 + 0] = i1;
+							piTriList_out[iDstTriIndex * 3 + 1] = i2;
+							piTriList_out[iDstTriIndex * 3 + 2] = i3;
 							++iDstTriIndex;
 						}
 					}
 				}
 
-				iTSpacesOffs += (int)(verts);
+				iTSpacesOffs += verts;
 			}
 
-			for (t = (int)(0); (t) < (iNrTrianglesIn); t++)
+			for (t = 0; (t) < (iNrTrianglesIn); t++)
 			{
-				pTriInfos[t].iFlag = (int)(0);
+				pTriInfos[t].iFlag = 0;
 			}
 
-			return (int)(iTSpacesOffs);
+			return iTSpacesOffs;
 		}
 
 		public static void GenerateSharedVerticesIndexList(int* piTriList_in_and_out, SMikkTSpaceContext pContext, int iNrTrianglesIn)
 		{
 			int* piHashTable = null; int* piHashCount = null; int* piHashOffsets = null; int* piHashCount2 = null;
 			STmpVert* pTmpVert = null;
-			int i = (int)(0); int iChannel = (int)(0); int k = (int)(0); int e = (int)(0);
-			int iMaxCount = (int)(0);
-			SVec3 vMin = (SVec3)(GetPosition(pContext, (int)(0))); SVec3 vMax = (SVec3)(vMin); SVec3 vDim = new SVec3();
+			int i = 0; int iChannel = 0; int k = 0; int e = 0;
+			int iMaxCount = 0;
+			SVec3 vMin = GetPosition(pContext, 0); SVec3 vMax = vMin; SVec3 vDim = new SVec3();
 			float fMin = 0; float fMax = 0;
-			for (i = (int)(1); (i) < (iNrTrianglesIn * 3); i++)
+			for (i = 1; (i) < (iNrTrianglesIn * 3); i++)
 			{
-				int index = (int)(piTriList_in_and_out[i]);
-				SVec3 vP = (SVec3)(GetPosition(pContext, (int)(index)));
+				int index = piTriList_in_and_out[i];
+				SVec3 vP = GetPosition(pContext, index);
 				if ((vMin.x) > (vP.x))
-					vMin.x = (float)(vP.x);
+					vMin.x = vP.x;
 				else if ((vMax.x) < (vP.x))
-					vMax.x = (float)(vP.x);
+					vMax.x = vP.x;
 				if ((vMin.y) > (vP.y))
-					vMin.y = (float)(vP.y);
+					vMin.y = vP.y;
 				else if ((vMax.y) < (vP.y))
-					vMax.y = (float)(vP.y);
+					vMax.y = vP.y;
 				if ((vMin.z) > (vP.z))
-					vMin.z = (float)(vP.z);
+					vMin.z = vP.z;
 				else if ((vMax.z) < (vP.z))
-					vMax.z = (float)(vP.z);
+					vMax.z = vP.z;
 			}
 
-			vDim = (SVec3)(vsub((SVec3)(vMax), (SVec3)(vMin)));
-			iChannel = (int)(0);
-			fMin = (float)(vMin.x);
-			fMax = (float)(vMax.x);
+			vDim = vsub(vMax, vMin);
+			iChannel = 0;
+			fMin = vMin.x;
+			fMax = vMax.x;
 			if (((vDim.y) > (vDim.x)) && ((vDim.y) > (vDim.z)))
 			{
-				iChannel = (int)(1);
-				fMin = (float)(vMin.y);
-				fMax = (float)(vMax.y);
+				iChannel = 1;
+				fMin = vMin.y;
+				fMax = vMax.y;
 			}
 			else if ((vDim.z) > (vDim.x))
 			{
-				iChannel = (int)(2);
-				fMin = (float)(vMin.z);
-				fMax = (float)(vMax.z);
+				iChannel = 2;
+				fMin = vMin.z;
+				fMax = vMax.z;
 			}
 
 			piHashTable = (int*)(CRuntime.malloc((ulong)(sizeof(int) * iNrTrianglesIn * 3)));
@@ -389,74 +389,74 @@ namespace MikkTSpaceSharp
 					CRuntime.free(piHashOffsets);
 				if (piHashCount2 != null)
 					CRuntime.free(piHashCount2);
-				GenerateSharedVerticesIndexListSlow(piTriList_in_and_out, pContext, (int)(iNrTrianglesIn));
+				GenerateSharedVerticesIndexListSlow(piTriList_in_and_out, pContext, iNrTrianglesIn);
 				return;
 			}
 
-			CRuntime.memset(piHashCount, (int)(0), (ulong)(sizeof(int) * g_iCells));
-			CRuntime.memset(piHashCount2, (int)(0), (ulong)(sizeof(int) * g_iCells));
-			for (i = (int)(0); (i) < (iNrTrianglesIn * 3); i++)
+			CRuntime.memset(piHashCount, 0, (ulong)(sizeof(int) * g_iCells));
+			CRuntime.memset(piHashCount2, 0, (ulong)(sizeof(int) * g_iCells));
+			for (i = 0; (i) < (iNrTrianglesIn * 3); i++)
 			{
-				int index = (int)(piTriList_in_and_out[i]);
-				SVec3 vP = (SVec3)(GetPosition(pContext, (int)(index)));
+				int index = piTriList_in_and_out[i];
+				SVec3 vP = GetPosition(pContext, index);
 				float fVal = (float)((iChannel) == (0) ? vP.x : ((iChannel) == (1) ? vP.y : vP.z));
-				int iCell = (int)(FindGridCell((float)(fMin), (float)(fMax), (float)(fVal)));
+				int iCell = FindGridCell((float)(fMin), (float)(fMax), (float)(fVal));
 				++piHashCount[iCell];
 			}
 
-			piHashOffsets[0] = (int)(0);
-			for (k = (int)(1); (k) < (g_iCells); k++)
+			piHashOffsets[0] = 0;
+			for (k = 1; (k) < (g_iCells); k++)
 			{
-				piHashOffsets[k] = (int)(piHashOffsets[k - 1] + piHashCount[k - 1]);
+				piHashOffsets[k] = piHashOffsets[k - 1] + piHashCount[k - 1];
 			}
 
-			for (i = (int)(0); (i) < (iNrTrianglesIn * 3); i++)
+			for (i = 0; (i) < (iNrTrianglesIn * 3); i++)
 			{
-				int index = (int)(piTriList_in_and_out[i]);
-				SVec3 vP = (SVec3)(GetPosition(pContext, (int)(index)));
+				int index = piTriList_in_and_out[i];
+				SVec3 vP = GetPosition(pContext, index);
 				float fVal = (float)((iChannel) == (0) ? vP.x : ((iChannel) == (1) ? vP.y : vP.z));
-				int iCell = (int)(FindGridCell((float)(fMin), (float)(fMax), (float)(fVal)));
+				int iCell = FindGridCell((float)(fMin), (float)(fMax), (float)(fVal));
 				int* pTable = null;
 				pTable = &piHashTable[piHashOffsets[iCell]];
-				pTable[piHashCount2[iCell]] = (int)(i);
+				pTable[piHashCount2[iCell]] = i;
 				++piHashCount2[iCell];
 			}
 
-			for (k = (int)(0); (k) < (g_iCells); k++)
+			for (k = 0; (k) < (g_iCells); k++)
 			{
 			}
 
 			CRuntime.free(piHashCount2);
-			iMaxCount = (int)(piHashCount[0]);
-			for (k = (int)(1); (k) < (g_iCells); k++)
+			iMaxCount = piHashCount[0];
+			for (k = 1; (k) < (g_iCells); k++)
 			{
 				if ((iMaxCount) < (piHashCount[k]))
-					iMaxCount = (int)(piHashCount[k]);
+					iMaxCount = piHashCount[k];
 			}
 
 			pTmpVert = (STmpVert*)(CRuntime.malloc((ulong)(sizeof(STmpVert) * iMaxCount)));
-			for (k = (int)(0); (k) < (g_iCells); k++)
+			for (k = 0; (k) < (g_iCells); k++)
 			{
 				int* pTable = &piHashTable[piHashOffsets[k]];
-				int iEntries = (int)(piHashCount[k]);
+				int iEntries = piHashCount[k];
 				if ((iEntries) < (2))
 					continue;
 				if (pTmpVert != null)
 				{
-					for (e = (int)(0); (e) < (iEntries); e++)
+					for (e = 0; (e) < (iEntries); e++)
 					{
-						int j = (int)(pTable[e]);
-						SVec3 vP = (SVec3)(GetPosition(pContext, (int)(piTriList_in_and_out[j])));
-						pTmpVert[e].vert[0] = (float)(vP.x);
-						pTmpVert[e].vert[1] = (float)(vP.y);
-						pTmpVert[e].vert[2] = (float)(vP.z);
-						pTmpVert[e].index = (int)(j);
+						int j = pTable[e];
+						SVec3 vP = GetPosition(pContext, piTriList_in_and_out[j]);
+						pTmpVert[e].vert[0] = vP.x;
+						pTmpVert[e].vert[1] = vP.y;
+						pTmpVert[e].vert[2] = vP.z;
+						pTmpVert[e].index = j;
 					}
 
-					MergeVertsFast(piTriList_in_and_out, pTmpVert, pContext, (int)(0), (int)(iEntries - 1));
+					MergeVertsFast(piTriList_in_and_out, pTmpVert, pContext, 0, iEntries - 1);
 				}
 				else
-					MergeVertsSlow(piTriList_in_and_out, pContext, pTable, (int)(iEntries));
+					MergeVertsSlow(piTriList_in_and_out, pContext, pTable, iEntries);
 			}
 
 			if (pTmpVert != null)
@@ -471,89 +471,89 @@ namespace MikkTSpaceSharp
 
 		public static void InitTriInfo(STriInfo[] pTriInfos, int* piTriListIn, SMikkTSpaceContext pContext, int iNrTrianglesIn)
 		{
-			int f = (int)(0); int i = (int)(0); int t = (int)(0);
-			for (f = (int)(0); (f) < (iNrTrianglesIn); f++)
+			int f = 0; int i = 0; int t = 0;
+			for (f = 0; (f) < (iNrTrianglesIn); f++)
 			{
-				for (i = (int)(0); (i) < (3); i++)
+				for (i = 0; (i) < (3); i++)
 				{
-					pTriInfos[f].FaceNeighbors[i] = (int)(-1);
+					pTriInfos[f].FaceNeighbors[i] = -1;
 					pTriInfos[f].AssignedGroup[i] = null;
-					pTriInfos[f].vOs.x = (float)(0);
-					pTriInfos[f].vOs.y = (float)(0);
-					pTriInfos[f].vOs.z = (float)(0);
-					pTriInfos[f].vOt.x = (float)(0);
-					pTriInfos[f].vOt.y = (float)(0);
-					pTriInfos[f].vOt.z = (float)(0);
-					pTriInfos[f].fMagS = (float)(0);
-					pTriInfos[f].fMagT = (float)(0);
-					pTriInfos[f].iFlag |= (int)(4);
+					pTriInfos[f].vOs.x = 0;
+					pTriInfos[f].vOs.y = 0;
+					pTriInfos[f].vOs.z = 0;
+					pTriInfos[f].vOt.x = 0;
+					pTriInfos[f].vOt.y = 0;
+					pTriInfos[f].vOt.z = 0;
+					pTriInfos[f].fMagS = 0;
+					pTriInfos[f].fMagT = 0;
+					pTriInfos[f].iFlag |= 4;
 				}
 			}
 
-			for (f = (int)(0); (f) < (iNrTrianglesIn); f++)
+			for (f = 0; (f) < (iNrTrianglesIn); f++)
 			{
-				SVec3 v1 = (SVec3)(GetPosition(pContext, (int)(piTriListIn[f * 3 + 0])));
-				SVec3 v2 = (SVec3)(GetPosition(pContext, (int)(piTriListIn[f * 3 + 1])));
-				SVec3 v3 = (SVec3)(GetPosition(pContext, (int)(piTriListIn[f * 3 + 2])));
-				SVec3 t1 = (SVec3)(GetTexCoord(pContext, (int)(piTriListIn[f * 3 + 0])));
-				SVec3 t2 = (SVec3)(GetTexCoord(pContext, (int)(piTriListIn[f * 3 + 1])));
-				SVec3 t3 = (SVec3)(GetTexCoord(pContext, (int)(piTriListIn[f * 3 + 2])));
+				SVec3 v1 = GetPosition(pContext, piTriListIn[f * 3 + 0]);
+				SVec3 v2 = GetPosition(pContext, piTriListIn[f * 3 + 1]);
+				SVec3 v3 = GetPosition(pContext, piTriListIn[f * 3 + 2]);
+				SVec3 t1 = GetTexCoord(pContext, piTriListIn[f * 3 + 0]);
+				SVec3 t2 = GetTexCoord(pContext, piTriListIn[f * 3 + 1]);
+				SVec3 t3 = GetTexCoord(pContext, piTriListIn[f * 3 + 2]);
 				float t21x = (float)(t2.x - t1.x);
 				float t21y = (float)(t2.y - t1.y);
 				float t31x = (float)(t3.x - t1.x);
 				float t31y = (float)(t3.y - t1.y);
-				SVec3 d1 = (SVec3)(vsub((SVec3)(v2), (SVec3)(v1)));
-				SVec3 d2 = (SVec3)(vsub((SVec3)(v3), (SVec3)(v1)));
+				SVec3 d1 = vsub(v2, v1);
+				SVec3 d2 = vsub(v3, v1);
 				float fSignedAreaSTx2 = (float)(t21x * t31y - t21y * t31x);
-				SVec3 vOs = (SVec3)(vsub((SVec3)(vscale((float)(t31y), (SVec3)(d1))), (SVec3)(vscale((float)(t21y), (SVec3)(d2)))));
-				SVec3 vOt = (SVec3)(vadd((SVec3)(vscale((float)(-t31x), (SVec3)(d1))), (SVec3)(vscale((float)(t21x), (SVec3)(d2)))));
-				pTriInfos[f].iFlag |= (int)((fSignedAreaSTx2) > (0) ? 8 : 0);
+				SVec3 vOs = vsub(vscale((float)(t31y), d1), vscale((float)(t21y), d2));
+				SVec3 vOt = vadd(vscale((float)(-t31x), d1), vscale((float)(t21x), d2));
+				pTriInfos[f].iFlag |= (fSignedAreaSTx2) > (0) ? 8 : 0;
 				if ((NotZero((float)(fSignedAreaSTx2))) != 0)
 				{
 					float fAbsArea = (float)(CRuntime.fabsf((float)(fSignedAreaSTx2)));
-					float fLenOs = (float)(Length((SVec3)(vOs)));
-					float fLenOt = (float)(Length((SVec3)(vOt)));
-					float fS = (float)((pTriInfos[f].iFlag & 8) == (0) ? (-1) : 1);
+					float fLenOs = (float)(Length(vOs));
+					float fLenOt = (float)(Length(vOt));
+					float fS = (pTriInfos[f].iFlag & 8) == (0) ? (-1) : 1;
 					if ((NotZero((float)(fLenOs))) != 0)
-						pTriInfos[f].vOs = (SVec3)(vscale((float)(fS / fLenOs), (SVec3)(vOs)));
+						pTriInfos[f].vOs = vscale((float)(fS / fLenOs), vOs);
 					if ((NotZero((float)(fLenOt))) != 0)
-						pTriInfos[f].vOt = (SVec3)(vscale((float)(fS / fLenOt), (SVec3)(vOt)));
-					pTriInfos[f].fMagS = (float)(fLenOs / fAbsArea);
-					pTriInfos[f].fMagT = (float)(fLenOt / fAbsArea);
-					if (((NotZero((float)(pTriInfos[f].fMagS))) != 0) && ((NotZero((float)(pTriInfos[f].fMagT))) != 0))
-						pTriInfos[f].iFlag &= (int)(~4);
+						pTriInfos[f].vOt = vscale((float)(fS / fLenOt), vOt);
+					pTriInfos[f].fMagS = fLenOs / fAbsArea;
+					pTriInfos[f].fMagT = fLenOt / fAbsArea;
+					if (((NotZero(pTriInfos[f].fMagS)) != 0) && ((NotZero(pTriInfos[f].fMagT)) != 0))
+						pTriInfos[f].iFlag &= ~4;
 				}
 			}
 
 			while ((t) < (iNrTrianglesIn - 1))
 			{
-				int iFO_a = (int)(pTriInfos[t].iOrgFaceNumber);
-				int iFO_b = (int)(pTriInfos[t + 1].iOrgFaceNumber);
+				int iFO_a = pTriInfos[t].iOrgFaceNumber;
+				int iFO_b = pTriInfos[t + 1].iOrgFaceNumber;
 				if ((iFO_a) == (iFO_b))
 				{
-					int bIsDeg_a = (int)((pTriInfos[t].iFlag & 1) != 0 ? 1 : 0);
-					int bIsDeg_b = (int)((pTriInfos[t + 1].iFlag & 1) != 0 ? 1 : 0);
+					int bIsDeg_a = (pTriInfos[t].iFlag & 1) != 0 ? 1 : 0;
+					int bIsDeg_b = (pTriInfos[t + 1].iFlag & 1) != 0 ? 1 : 0;
 					if ((bIsDeg_a == 0) && (bIsDeg_b == 0))
 					{
-						int bOrientA = (int)((pTriInfos[t].iFlag & 8) != 0 ? 1 : 0);
-						int bOrientB = (int)((pTriInfos[t + 1].iFlag & 8) != 0 ? 1 : 0);
+						int bOrientA = (pTriInfos[t].iFlag & 8) != 0 ? 1 : 0;
+						int bOrientB = (pTriInfos[t + 1].iFlag & 8) != 0 ? 1 : 0;
 						if (bOrientA != bOrientB)
 						{
-							int bChooseOrientFirstTri = (int)(0);
+							int bChooseOrientFirstTri = 0;
 							if ((pTriInfos[t + 1].iFlag & 4) != 0)
-								bChooseOrientFirstTri = (int)(1);
+								bChooseOrientFirstTri = 1;
 							else if ((CalcTexArea(pContext, &piTriListIn[t * 3 + 0])) >= (CalcTexArea(pContext, &piTriListIn[(t + 1) * 3 + 0])))
-								bChooseOrientFirstTri = (int)(1);
+								bChooseOrientFirstTri = 1;
 							{
-								int t0 = (int)((bChooseOrientFirstTri) != 0 ? t : (t + 1));
-								int t1 = (int)((bChooseOrientFirstTri) != 0 ? (t + 1) : t);
-								pTriInfos[t1].iFlag &= (int)(~8);
-								pTriInfos[t1].iFlag |= (int)(pTriInfos[t0].iFlag & 8);
+								int t0 = (bChooseOrientFirstTri) != 0 ? t : (t + 1);
+								int t1 = (bChooseOrientFirstTri) != 0 ? (t + 1) : t;
+								pTriInfos[t1].iFlag &= ~8;
+								pTriInfos[t1].iFlag |= pTriInfos[t0].iFlag & 8;
 							}
 						}
 					}
 
-					t += (int)(2);
+					t += 2;
 				}
 				else
 					++t;
@@ -562,10 +562,10 @@ namespace MikkTSpaceSharp
 			{
 				SEdge* pEdges = (SEdge*)(CRuntime.malloc((ulong)(sizeof(SEdge) * iNrTrianglesIn * 3)));
 				if ((pEdges) == (null))
-					BuildNeighborsSlow(pTriInfos, piTriListIn, (int)(iNrTrianglesIn));
+					BuildNeighborsSlow(pTriInfos, piTriListIn, iNrTrianglesIn);
 				else
 				{
-					BuildNeighborsFast(pTriInfos, pEdges, piTriListIn, (int)(iNrTrianglesIn));
+					BuildNeighborsFast(pTriInfos, pEdges, piTriListIn, iNrTrianglesIn);
 					CRuntime.free(pEdges);
 				}
 			}
@@ -573,49 +573,49 @@ namespace MikkTSpaceSharp
 
 		public static int Build4RuleGroups(STriInfo[] pTriInfos, SGroup* pGroups, int* piGroupTrianglesBuffer, int* piTriListIn, int iNrTrianglesIn)
 		{
-			int iNrMaxGroups = (int)(iNrTrianglesIn * 3);
-			int iNrActiveGroups = (int)(0);
-			int iOffset = (int)(0); int f = (int)(0); int i = (int)(0);
-			for (f = (int)(0); (f) < (iNrTrianglesIn); f++)
+			int iNrMaxGroups = iNrTrianglesIn * 3;
+			int iNrActiveGroups = 0;
+			int iOffset = 0; int f = 0; int i = 0;
+			for (f = 0; (f) < (iNrTrianglesIn); f++)
 			{
-				for (i = (int)(0); (i) < (3); i++)
+				for (i = 0; (i) < (3); i++)
 				{
 					if (((pTriInfos[f].iFlag & 4) == (0)) && ((pTriInfos[f].AssignedGroup[i]) == (null)))
 					{
 						int bOrPre = 0;
 						int neigh_indexL = 0;
 						int neigh_indexR = 0;
-						int vert_index = (int)(piTriListIn[f * 3 + i]);
+						int vert_index = piTriListIn[f * 3 + i];
 						pTriInfos[f].AssignedGroup[i] = &pGroups[iNrActiveGroups];
-						pTriInfos[f].AssignedGroup[i]->iVertexRepresentitive = (int)(vert_index);
+						pTriInfos[f].AssignedGroup[i]->iVertexRepresentitive = vert_index;
 						pTriInfos[f].AssignedGroup[i]->bOrientPreservering = ((pTriInfos[f].iFlag & 8) != 0) ? 1 : 0;
-						pTriInfos[f].AssignedGroup[i]->iNrFaces = (int)(0);
+						pTriInfos[f].AssignedGroup[i]->iNrFaces = 0;
 						pTriInfos[f].AssignedGroup[i]->pFaceIndices = &piGroupTrianglesBuffer[iOffset];
 						++iNrActiveGroups;
-						AddTriToGroup(pTriInfos[f].AssignedGroup[i], (int)(f));
-						bOrPre = (int)((pTriInfos[f].iFlag & 8) != 0 ? 1 : 0);
-						neigh_indexL = (int)(pTriInfos[f].FaceNeighbors[i]);
-						neigh_indexR = (int)(pTriInfos[f].FaceNeighbors[(i) > (0) ? (i - 1) : 2]);
+						AddTriToGroup(pTriInfos[f].AssignedGroup[i], f);
+						bOrPre = (pTriInfos[f].iFlag & 8) != 0 ? 1 : 0;
+						neigh_indexL = pTriInfos[f].FaceNeighbors[i];
+						neigh_indexR = pTriInfos[f].FaceNeighbors[(i) > (0) ? (i - 1) : 2];
 						if ((neigh_indexL) >= (0))
 						{
-							int bAnswer = (int)(AssignRecur(piTriListIn, pTriInfos, (int)(neigh_indexL), pTriInfos[f].AssignedGroup[i]));
-							int bOrPre2 = (int)((pTriInfos[neigh_indexL].iFlag & 8) != 0 ? 1 : 0);
-							int bDiff = (int)(bOrPre != bOrPre2 ? 1 : 0);
+							int bAnswer = AssignRecur(piTriListIn, pTriInfos, neigh_indexL, pTriInfos[f].AssignedGroup[i]);
+							int bOrPre2 = (pTriInfos[neigh_indexL].iFlag & 8) != 0 ? 1 : 0;
+							int bDiff = bOrPre != bOrPre2 ? 1 : 0;
 						}
 
 						if ((neigh_indexR) >= (0))
 						{
-							int bAnswer = (int)(AssignRecur(piTriListIn, pTriInfos, (int)(neigh_indexR), pTriInfos[f].AssignedGroup[i]));
-							int bOrPre2 = (int)((pTriInfos[neigh_indexR].iFlag & 8) != 0 ? 1 : 0);
-							int bDiff = (int)(bOrPre != bOrPre2 ? 1 : 0);
+							int bAnswer = AssignRecur(piTriListIn, pTriInfos, neigh_indexR, pTriInfos[f].AssignedGroup[i]);
+							int bOrPre2 = (pTriInfos[neigh_indexR].iFlag & 8) != 0 ? 1 : 0;
+							int bDiff = bOrPre != bOrPre2 ? 1 : 0;
 						}
 
-						iOffset += (int)(pTriInfos[f].AssignedGroup[i]->iNrFaces);
+						iOffset += pTriInfos[f].AssignedGroup[i]->iNrFaces;
 					}
 				}
 			}
 
-			return (int)(iNrActiveGroups);
+			return iNrActiveGroups;
 		}
 
 		public static int GenerateTSpaces(STSpace* psTspace, STriInfo[] pTriInfos, SGroup* pGroups, int iNrActiveGroups, int* piTriListIn, float fThresCos, SMikkTSpaceContext pContext)
@@ -623,15 +623,15 @@ namespace MikkTSpaceSharp
 			STSpace* pSubGroupTspace = null;
 			SSubGroup* pUniSubGroups = null;
 			int* pTmpMembers = null;
-			int iMaxNrFaces = (int)(0); int iUniqueTspaces = (int)(0); int g = (int)(0); int i = (int)(0);
-			for (g = (int)(0); (g) < (iNrActiveGroups); g++)
+			int iMaxNrFaces = 0; int iUniqueTspaces = 0; int g = 0; int i = 0;
+			for (g = 0; (g) < (iNrActiveGroups); g++)
 			{
 				if ((iMaxNrFaces) < (pGroups[g].iNrFaces))
-					iMaxNrFaces = (int)(pGroups[g].iNrFaces);
+					iMaxNrFaces = pGroups[g].iNrFaces;
 			}
 
 			if ((iMaxNrFaces) == (0))
-				return (int)(1);
+				return 1;
 			pSubGroupTspace = (STSpace*)(CRuntime.malloc((ulong)(sizeof(STSpace) * iMaxNrFaces)));
 			pUniSubGroups = (SSubGroup*)(CRuntime.malloc((ulong)(sizeof(SSubGroup) * iMaxNrFaces)));
 			pTmpMembers = (int*)(CRuntime.malloc((ulong)(sizeof(int) * iMaxNrFaces)));
@@ -643,78 +643,78 @@ namespace MikkTSpaceSharp
 					CRuntime.free(pUniSubGroups);
 				if (pTmpMembers != null)
 					CRuntime.free(pTmpMembers);
-				return (int)(0);
+				return 0;
 			}
 
-			iUniqueTspaces = (int)(0);
-			for (g = (int)(0); (g) < (iNrActiveGroups); g++)
+			iUniqueTspaces = 0;
+			for (g = 0; (g) < (iNrActiveGroups); g++)
 			{
 				SGroup* pGroup = &pGroups[g];
-				int iUniqueSubGroups = (int)(0);
-				int s = (int)(0);
-				for (i = (int)(0); (i) < (pGroup->iNrFaces); i++)
+				int iUniqueSubGroups = 0;
+				int s = 0;
+				for (i = 0; (i) < (pGroup->iNrFaces); i++)
 				{
-					int f = (int)(pGroup->pFaceIndices[i]);
-					int index = (int)(-1);
-					int iVertIndex = (int)(-1);
-					int iOF_1 = (int)(-1);
-					int iMembers = (int)(0);
-					int j = (int)(0);
-					int l = (int)(0);
+					int f = pGroup->pFaceIndices[i];
+					int index = -1;
+					int iVertIndex = -1;
+					int iOF_1 = -1;
+					int iMembers = 0;
+					int j = 0;
+					int l = 0;
 					SSubGroup tmp_group = new SSubGroup();
 					int bFound = 0;
 					SVec3 n = new SVec3();
 					SVec3 vOs = new SVec3();
 					SVec3 vOt = new SVec3();
 					if ((pTriInfos[f].AssignedGroup[0]) == (pGroup))
-						index = (int)(0);
+						index = 0;
 					else if ((pTriInfos[f].AssignedGroup[1]) == (pGroup))
-						index = (int)(1);
+						index = 1;
 					else if ((pTriInfos[f].AssignedGroup[2]) == (pGroup))
-						index = (int)(2);
-					iVertIndex = (int)(piTriListIn[f * 3 + index]);
-					n = (SVec3)(GetNormal(pContext, (int)(iVertIndex)));
-					vOs = (SVec3)(vsub((SVec3)(pTriInfos[f].vOs), (SVec3)(vscale((float)(vdot((SVec3)(n), (SVec3)(pTriInfos[f].vOs))), (SVec3)(n)))));
-					vOt = (SVec3)(vsub((SVec3)(pTriInfos[f].vOt), (SVec3)(vscale((float)(vdot((SVec3)(n), (SVec3)(pTriInfos[f].vOt))), (SVec3)(n)))));
-					if ((VNotZero((SVec3)(vOs))) != 0)
-						vOs = (SVec3)(Normalize((SVec3)(vOs)));
-					if ((VNotZero((SVec3)(vOt))) != 0)
-						vOt = (SVec3)(Normalize((SVec3)(vOt)));
-					iOF_1 = (int)(pTriInfos[f].iOrgFaceNumber);
-					iMembers = (int)(0);
-					for (j = (int)(0); (j) < (pGroup->iNrFaces); j++)
+						index = 2;
+					iVertIndex = piTriListIn[f * 3 + index];
+					n = GetNormal(pContext, iVertIndex);
+					vOs = vsub(pTriInfos[f].vOs, vscale((float)(vdot(n, pTriInfos[f].vOs)), n));
+					vOt = vsub(pTriInfos[f].vOt, vscale((float)(vdot(n, pTriInfos[f].vOt)), n));
+					if ((VNotZero(vOs)) != 0)
+						vOs = Normalize(vOs);
+					if ((VNotZero(vOt)) != 0)
+						vOt = Normalize(vOt);
+					iOF_1 = pTriInfos[f].iOrgFaceNumber;
+					iMembers = 0;
+					for (j = 0; (j) < (pGroup->iNrFaces); j++)
 					{
-						int t = (int)(pGroup->pFaceIndices[j]);
-						int iOF_2 = (int)(pTriInfos[t].iOrgFaceNumber);
-						SVec3 vOs2 = (SVec3)(vsub((SVec3)(pTriInfos[t].vOs), (SVec3)(vscale((float)(vdot((SVec3)(n), (SVec3)(pTriInfos[t].vOs))), (SVec3)(n)))));
-						SVec3 vOt2 = (SVec3)(vsub((SVec3)(pTriInfos[t].vOt), (SVec3)(vscale((float)(vdot((SVec3)(n), (SVec3)(pTriInfos[t].vOt))), (SVec3)(n)))));
-						if ((VNotZero((SVec3)(vOs2))) != 0)
-							vOs2 = (SVec3)(Normalize((SVec3)(vOs2)));
-						if ((VNotZero((SVec3)(vOt2))) != 0)
-							vOt2 = (SVec3)(Normalize((SVec3)(vOt2)));
+						int t = pGroup->pFaceIndices[j];
+						int iOF_2 = pTriInfos[t].iOrgFaceNumber;
+						SVec3 vOs2 = vsub(pTriInfos[t].vOs, vscale((float)(vdot(n, pTriInfos[t].vOs)), n));
+						SVec3 vOt2 = vsub(pTriInfos[t].vOt, vscale((float)(vdot(n, pTriInfos[t].vOt)), n));
+						if ((VNotZero(vOs2)) != 0)
+							vOs2 = Normalize(vOs2);
+						if ((VNotZero(vOt2)) != 0)
+							vOt2 = Normalize(vOt2);
 						{
-							int bAny = (int)(((pTriInfos[f].iFlag | pTriInfos[t].iFlag) & 4) != 0 ? 1 : 0);
-							int bSameOrgFace = (int)((iOF_1) == (iOF_2) ? 1 : 0);
-							float fCosS = (float)(vdot((SVec3)(vOs), (SVec3)(vOs2)));
-							float fCosT = (float)(vdot((SVec3)(vOt), (SVec3)(vOt2)));
+							int bAny = ((pTriInfos[f].iFlag | pTriInfos[t].iFlag) & 4) != 0 ? 1 : 0;
+							int bSameOrgFace = (iOF_1) == (iOF_2) ? 1 : 0;
+							float fCosS = (float)(vdot(vOs, vOs2));
+							float fCosT = (float)(vdot(vOt, vOt2));
 							if ((((bAny) != 0) || ((bSameOrgFace) != 0)) || (((fCosS) > (fThresCos)) && ((fCosT) > (fThresCos))))
-								pTmpMembers[iMembers++] = (int)(t);
+								pTmpMembers[iMembers++] = t;
 						}
 					}
 
-					tmp_group.iNrFaces = (int)(iMembers);
+					tmp_group.iNrFaces = iMembers;
 					tmp_group.pTriMembers = pTmpMembers;
 					if ((iMembers) > (1))
 					{
-						uint uSeed = (uint)(39871946);
-						QuickSort(pTmpMembers, (int)(0), (int)(iMembers - 1), (uint)(uSeed));
+						uint uSeed = 39871946;
+						QuickSort(pTmpMembers, 0, iMembers - 1, uSeed);
 					}
 
-					bFound = (int)(0);
-					l = (int)(0);
+					bFound = 0;
+					l = 0;
 					while (((l) < (iUniqueSubGroups)) && (bFound == 0))
 					{
-						bFound = (int)(CompareSubGroups(&tmp_group, &pUniSubGroups[l]));
+						bFound = CompareSubGroups(&tmp_group, &pUniSubGroups[l]);
 						if (bFound == 0)
 							++l;
 					}
@@ -724,8 +724,8 @@ namespace MikkTSpaceSharp
 						int* pIndices = (int*)(CRuntime.malloc((ulong)(sizeof(int) * iMembers)));
 						if ((pIndices) == (null))
 						{
-							int k = (int)(0);
-							for (k = (int)(0); (k) < (iUniqueSubGroups); k++)
+							int k = 0;
+							for (k = 0; (k) < (iUniqueSubGroups); k++)
 							{
 								CRuntime.free(pUniSubGroups[k].pTriMembers);
 							}
@@ -733,181 +733,181 @@ namespace MikkTSpaceSharp
 							CRuntime.free(pUniSubGroups);
 							CRuntime.free(pTmpMembers);
 							CRuntime.free(pSubGroupTspace);
-							return (int)(0);
+							return 0;
 						}
 
-						pUniSubGroups[iUniqueSubGroups].iNrFaces = (int)(iMembers);
+						pUniSubGroups[iUniqueSubGroups].iNrFaces = iMembers;
 						pUniSubGroups[iUniqueSubGroups].pTriMembers = pIndices;
 						CRuntime.memcpy(pIndices, tmp_group.pTriMembers, (ulong)(iMembers * sizeof(int)));
-						pSubGroupTspace[iUniqueSubGroups] = (STSpace)(EvalTspace(tmp_group.pTriMembers, (int)(iMembers), piTriListIn, pTriInfos, pContext, (int)(pGroup->iVertexRepresentitive)));
+						pSubGroupTspace[iUniqueSubGroups] = EvalTspace(tmp_group.pTriMembers, iMembers, piTriListIn, pTriInfos, pContext, pGroup->iVertexRepresentitive);
 						++iUniqueSubGroups;
 					}
 
 					{
-						int iOffs = (int)(pTriInfos[f].iTSpacesOffs);
-						int iVert = (int)(pTriInfos[f].vert_num[index]);
+						int iOffs = pTriInfos[f].iTSpacesOffs;
+						int iVert = pTriInfos[f].vert_num[index];
 						STSpace* pTS_out = &psTspace[iOffs + iVert];
 						if ((pTS_out->iCounter) == (1))
 						{
-							*pTS_out = (STSpace)(AvgTSpace(pTS_out, &pSubGroupTspace[l]));
-							pTS_out->iCounter = (int)(2);
-							pTS_out->bOrient = (int)(pGroup->bOrientPreservering);
+							*pTS_out = AvgTSpace(pTS_out, &pSubGroupTspace[l]);
+							pTS_out->iCounter = 2;
+							pTS_out->bOrient = pGroup->bOrientPreservering;
 						}
 						else
 						{
-							*pTS_out = (STSpace)(pSubGroupTspace[l]);
-							pTS_out->iCounter = (int)(1);
-							pTS_out->bOrient = (int)(pGroup->bOrientPreservering);
+							*pTS_out = pSubGroupTspace[l];
+							pTS_out->iCounter = 1;
+							pTS_out->bOrient = pGroup->bOrientPreservering;
 						}
 					}
 				}
 
-				for (s = (int)(0); (s) < (iUniqueSubGroups); s++)
+				for (s = 0; (s) < (iUniqueSubGroups); s++)
 				{
 					CRuntime.free(pUniSubGroups[s].pTriMembers);
 				}
 
-				iUniqueTspaces += (int)(iUniqueSubGroups);
+				iUniqueTspaces += iUniqueSubGroups;
 			}
 
 			CRuntime.free(pUniSubGroups);
 			CRuntime.free(pTmpMembers);
 			CRuntime.free(pSubGroupTspace);
-			return (int)(1);
+			return 1;
 		}
 
 		public static int MakeIndex(int iFace, int iVert)
 		{
-			return (int)((iFace << 2) | (iVert & 3));
+			return (iFace << 2) | (iVert & 3);
 		}
 
 		public static void IndexToData(int* piFace, int* piVert, int iIndexIn)
 		{
-			piVert[0] = (int)(iIndexIn & 3);
-			piFace[0] = (int)(iIndexIn >> 2);
+			piVert[0] = iIndexIn & 3;
+			piFace[0] = iIndexIn >> 2;
 		}
 
 		public static STSpace AvgTSpace(STSpace* pTS0, STSpace* pTS1)
 		{
 			STSpace ts_res = new STSpace();
-			if (((((pTS0->fMagS) == (pTS1->fMagS)) && ((pTS0->fMagT) == (pTS1->fMagT))) && ((veq((SVec3)(pTS0->vOs), (SVec3)(pTS1->vOs))) != 0)) && ((veq((SVec3)(pTS0->vOt), (SVec3)(pTS1->vOt))) != 0))
+			if (((((pTS0->fMagS) == (pTS1->fMagS)) && ((pTS0->fMagT) == (pTS1->fMagT))) && ((veq(pTS0->vOs, pTS1->vOs)) != 0)) && ((veq(pTS0->vOt, pTS1->vOt)) != 0))
 			{
-				ts_res.fMagS = (float)(pTS0->fMagS);
-				ts_res.fMagT = (float)(pTS0->fMagT);
-				ts_res.vOs = (SVec3)(pTS0->vOs);
-				ts_res.vOt = (SVec3)(pTS0->vOt);
+				ts_res.fMagS = pTS0->fMagS;
+				ts_res.fMagT = pTS0->fMagT;
+				ts_res.vOs = pTS0->vOs;
+				ts_res.vOt = pTS0->vOt;
 			}
 			else
 			{
 				ts_res.fMagS = (float)(0.5 * (pTS0->fMagS + pTS1->fMagS));
 				ts_res.fMagT = (float)(0.5 * (pTS0->fMagT + pTS1->fMagT));
-				ts_res.vOs = (SVec3)(vadd((SVec3)(pTS0->vOs), (SVec3)(pTS1->vOs)));
-				ts_res.vOt = (SVec3)(vadd((SVec3)(pTS0->vOt), (SVec3)(pTS1->vOt)));
-				if ((VNotZero((SVec3)(ts_res.vOs))) != 0)
-					ts_res.vOs = (SVec3)(Normalize((SVec3)(ts_res.vOs)));
-				if ((VNotZero((SVec3)(ts_res.vOt))) != 0)
-					ts_res.vOt = (SVec3)(Normalize((SVec3)(ts_res.vOt)));
+				ts_res.vOs = vadd(pTS0->vOs, pTS1->vOs);
+				ts_res.vOt = vadd(pTS0->vOt, pTS1->vOt);
+				if ((VNotZero(ts_res.vOs)) != 0)
+					ts_res.vOs = Normalize(ts_res.vOs);
+				if ((VNotZero(ts_res.vOt)) != 0)
+					ts_res.vOt = Normalize(ts_res.vOt);
 			}
 
-			return (STSpace)(ts_res);
+			return ts_res;
 		}
 
 		public static SVec3 GetPosition(SMikkTSpaceContext pContext, int index)
 		{
 			int iF = 0; int iI = 0;
-			IndexToData(&iF, &iI, (int)(index));
+			IndexToData(&iF, &iI, index);
 
-			var res = pContext.m_getPosition((int)(iF), (int)(iI));
-			return (SVec3)(res);
+			var res = pContext.m_getPosition(iF, iI);
+			return res;
 		}
 
 		public static SVec3 GetNormal(SMikkTSpaceContext pContext, int index)
 		{
 			int iF = 0; int iI = 0;
-			IndexToData(&iF, &iI, (int)(index));
-			var res = pContext.m_getNormal((int)(iF), (int)(iI));
-			return (SVec3)(res);
+			IndexToData(&iF, &iI, index);
+			var res = pContext.m_getNormal(iF, iI);
+			return res;
 		}
 
 		public static SVec3 GetTexCoord(SMikkTSpaceContext pContext, int index)
 		{
 			int iF = 0; int iI = 0;
-			IndexToData(&iF, &iI, (int)(index));
-			var res = pContext.m_getTexCoord((int)(iF), (int)(iI));
+			IndexToData(&iF, &iI, index);
+			var res = pContext.m_getTexCoord(iF, iI);
 			return new SVec3(res.x, res.y, 1.0f);
 		}
 
 		public static void DegenPrologue(STriInfo[] pTriInfos, int* piTriList_out, int iNrTrianglesIn, int iTotTris)
 		{
-			int iNextGoodTriangleSearchIndex = (int)(-1);
+			int iNextGoodTriangleSearchIndex = -1;
 			int bStillFindingGoodOnes = 0;
-			int t = (int)(0);
+			int t = 0;
 			while ((t) < (iTotTris - 1))
 			{
-				int iFO_a = (int)(pTriInfos[t].iOrgFaceNumber);
-				int iFO_b = (int)(pTriInfos[t + 1].iOrgFaceNumber);
+				int iFO_a = pTriInfos[t].iOrgFaceNumber;
+				int iFO_b = pTriInfos[t + 1].iOrgFaceNumber;
 				if ((iFO_a) == (iFO_b))
 				{
-					int bIsDeg_a = (int)((pTriInfos[t].iFlag & 1) != 0 ? 1 : 0);
-					int bIsDeg_b = (int)((pTriInfos[t + 1].iFlag & 1) != 0 ? 1 : 0);
+					int bIsDeg_a = (pTriInfos[t].iFlag & 1) != 0 ? 1 : 0;
+					int bIsDeg_b = (pTriInfos[t + 1].iFlag & 1) != 0 ? 1 : 0;
 					if ((bIsDeg_a ^ bIsDeg_b) != 0)
 					{
-						pTriInfos[t].iFlag |= (int)(2);
-						pTriInfos[t + 1].iFlag |= (int)(2);
+						pTriInfos[t].iFlag |= 2;
+						pTriInfos[t + 1].iFlag |= 2;
 					}
 
-					t += (int)(2);
+					t += 2;
 				}
 				else
 					++t;
 			}
 
-			iNextGoodTriangleSearchIndex = (int)(1);
-			t = (int)(0);
-			bStillFindingGoodOnes = (int)(1);
+			iNextGoodTriangleSearchIndex = 1;
+			t = 0;
+			bStillFindingGoodOnes = 1;
 			while (((t) < (iNrTrianglesIn)) && ((bStillFindingGoodOnes) != 0))
 			{
-				int bIsGood = (int)((pTriInfos[t].iFlag & 1) == (0) ? 1 : 0);
+				int bIsGood = (pTriInfos[t].iFlag & 1) == (0) ? 1 : 0;
 				if ((bIsGood) != 0)
 				{
 					if ((iNextGoodTriangleSearchIndex) < (t + 2))
-						iNextGoodTriangleSearchIndex = (int)(t + 2);
+						iNextGoodTriangleSearchIndex = t + 2;
 				}
 				else
 				{
 					int t0 = 0;
 					int t1 = 0;
-					int bJustADegenerate = (int)(1);
+					int bJustADegenerate = 1;
 					while (((bJustADegenerate) != 0) && ((iNextGoodTriangleSearchIndex) < (iTotTris)))
 					{
-						int bIsGood2 = (int)((pTriInfos[iNextGoodTriangleSearchIndex].iFlag & 1) == (0) ? 1 : 0);
+						int bIsGood2 = (pTriInfos[iNextGoodTriangleSearchIndex].iFlag & 1) == (0) ? 1 : 0;
 						if ((bIsGood2) != 0)
-							bJustADegenerate = (int)(0);
+							bJustADegenerate = 0;
 						else
 							++iNextGoodTriangleSearchIndex;
 					}
 
-					t0 = (int)(t);
-					t1 = (int)(iNextGoodTriangleSearchIndex);
+					t0 = t;
+					t1 = iNextGoodTriangleSearchIndex;
 					++iNextGoodTriangleSearchIndex;
 					if (bJustADegenerate == 0)
 					{
-						int i = (int)(0);
-						for (i = (int)(0); (i) < (3); i++)
+						int i = 0;
+						for (i = 0; (i) < (3); i++)
 						{
-							int index = (int)(piTriList_out[t0 * 3 + i]);
-							piTriList_out[t0 * 3 + i] = (int)(piTriList_out[t1 * 3 + i]);
-							piTriList_out[t1 * 3 + i] = (int)(index);
+							int index = piTriList_out[t0 * 3 + i];
+							piTriList_out[t0 * 3 + i] = piTriList_out[t1 * 3 + i];
+							piTriList_out[t1 * 3 + i] = index;
 						}
 
 						{
-							STriInfo tri_info = (STriInfo)(pTriInfos[t0]);
-							pTriInfos[t0] = (STriInfo)(pTriInfos[t1]);
-							pTriInfos[t1] = (STriInfo)(tri_info);
+							STriInfo tri_info = pTriInfos[t0];
+							pTriInfos[t0] = pTriInfos[t1];
+							pTriInfos[t1] = tri_info;
 						}
 					}
 					else
-						bStillFindingGoodOnes = (int)(0);
+						bStillFindingGoodOnes = 0;
 				}
 
 				if ((bStillFindingGoodOnes) != 0)
@@ -917,70 +917,70 @@ namespace MikkTSpaceSharp
 
 		public static void DegenEpilogue(STSpace* psTspace, STriInfo[] pTriInfos, int* piTriListIn, SMikkTSpaceContext pContext, int iNrTrianglesIn, int iTotTris)
 		{
-			int t = (int)(0); int i = (int)(0);
-			for (t = (int)(iNrTrianglesIn); (t) < (iTotTris); t++)
+			int t = 0; int i = 0;
+			for (t = iNrTrianglesIn; (t) < (iTotTris); t++)
 			{
-				int bSkip = (int)((pTriInfos[t].iFlag & 2) != 0 ? 1 : 0);
+				int bSkip = (pTriInfos[t].iFlag & 2) != 0 ? 1 : 0;
 				if (bSkip == 0)
 				{
-					for (i = (int)(0); (i) < (3); i++)
+					for (i = 0; (i) < (3); i++)
 					{
-						int index1 = (int)(piTriListIn[t * 3 + i]);
-						int bNotFound = (int)(1);
-						int j = (int)(0);
+						int index1 = piTriListIn[t * 3 + i];
+						int bNotFound = 1;
+						int j = 0;
 						while (((bNotFound) != 0) && ((j) < (3 * iNrTrianglesIn)))
 						{
-							int index2 = (int)(piTriListIn[j]);
+							int index2 = piTriListIn[j];
 							if ((index1) == (index2))
-								bNotFound = (int)(0);
+								bNotFound = 0;
 							else
 								++j;
 						}
 
 						if (bNotFound == 0)
 						{
-							int iTri = (int)(j / 3);
-							int iVert = (int)(j % 3);
-							int iSrcVert = (int)(pTriInfos[iTri].vert_num[iVert]);
-							int iSrcOffs = (int)(pTriInfos[iTri].iTSpacesOffs);
-							int iDstVert = (int)(pTriInfos[t].vert_num[i]);
-							int iDstOffs = (int)(pTriInfos[t].iTSpacesOffs);
-							psTspace[iDstOffs + iDstVert] = (STSpace)(psTspace[iSrcOffs + iSrcVert]);
+							int iTri = j / 3;
+							int iVert = j % 3;
+							int iSrcVert = pTriInfos[iTri].vert_num[iVert];
+							int iSrcOffs = pTriInfos[iTri].iTSpacesOffs;
+							int iDstVert = pTriInfos[t].vert_num[i];
+							int iDstOffs = pTriInfos[t].iTSpacesOffs;
+							psTspace[iDstOffs + iDstVert] = psTspace[iSrcOffs + iSrcVert];
 						}
 					}
 				}
 			}
 
-			for (t = (int)(0); (t) < (iNrTrianglesIn); t++)
+			for (t = 0; (t) < (iNrTrianglesIn); t++)
 			{
 				if ((pTriInfos[t].iFlag & 2) != 0)
 				{
 					SVec3 vDstP = new SVec3();
-					int iOrgF = (int)(-1);
-					int j = (int)(0);
+					int iOrgF = -1;
+					int j = 0;
 					int bNotFound = 0;
 					byte[] pV = pTriInfos[t].vert_num;
-					int iFlag = (int)((1 << pV[0]) | (1 << pV[1]) | (1 << pV[2]));
-					int iMissingIndex = (int)(0);
+					int iFlag = (1 << pV[0]) | (1 << pV[1]) | (1 << pV[2]);
+					int iMissingIndex = 0;
 					if ((iFlag & 2) == (0))
-						iMissingIndex = (int)(1);
+						iMissingIndex = 1;
 					else if ((iFlag & 4) == (0))
-						iMissingIndex = (int)(2);
+						iMissingIndex = 2;
 					else if ((iFlag & 8) == (0))
-						iMissingIndex = (int)(3);
-					iOrgF = (int)(pTriInfos[t].iOrgFaceNumber);
-					vDstP = (SVec3)(GetPosition(pContext, (int)(MakeIndex((int)(iOrgF), (int)(iMissingIndex)))));
-					bNotFound = (int)(1);
-					j = (int)(0);
+						iMissingIndex = 3;
+					iOrgF = pTriInfos[t].iOrgFaceNumber;
+					vDstP = GetPosition(pContext, MakeIndex(iOrgF, iMissingIndex));
+					bNotFound = 1;
+					j = 0;
 					while (((bNotFound) != 0) && ((j) < (3)))
 					{
-						int iVert = (int)(pV[j]);
-						SVec3 vSrcP = (SVec3)(GetPosition(pContext, (int)(MakeIndex((int)(iOrgF), (int)(iVert)))));
-						if ((veq((SVec3)(vSrcP), (SVec3)(vDstP))) == (1))
+						int iVert = pV[j];
+						SVec3 vSrcP = GetPosition(pContext, MakeIndex(iOrgF, iVert));
+						if ((veq(vSrcP, vDstP)) == (1))
 						{
-							int iOffs = (int)(pTriInfos[t].iTSpacesOffs);
-							psTspace[iOffs + iMissingIndex] = (STSpace)(psTspace[iOffs + iVert]);
-							bNotFound = (int)(0);
+							int iOffs = pTriInfos[t].iTSpacesOffs;
+							psTspace[iOffs + iMissingIndex] = psTspace[iOffs + iVert];
+							bNotFound = 0;
 						}
 						else
 							++j;
@@ -993,23 +993,23 @@ namespace MikkTSpaceSharp
 		{
 			float fIndex = (float)(g_iCells * ((fVal - fMin) / (fMax - fMin)));
 			int iIndex = (int)(fIndex);
-			return (int)((iIndex) < (g_iCells) ? ((iIndex) >= (0) ? iIndex : 0) : (g_iCells - 1));
+			return (iIndex) < (g_iCells) ? ((iIndex) >= (0) ? iIndex : 0) : (g_iCells - 1);
 		}
 
 		public static void MergeVertsFast(int* piTriList_in_and_out, STmpVert* pTmpVert, SMikkTSpaceContext pContext, int iL_in, int iR_in)
 		{
-			int c = (int)(0); int l = (int)(0); int channel = (int)(0);
+			int c = 0; int l = 0; int channel = 0;
 			float* fvMin = stackalloc float[3]; float* fvMax = stackalloc float[3];
-			float dx = (float)(0); float dy = (float)(0); float dz = (float)(0); float fSep = (float)(0);
-			for (c = (int)(0); (c) < (3); c++)
+			float dx = 0; float dy = 0; float dz = 0; float fSep = 0;
+			for (c = 0; (c) < (3); c++)
 			{
 				fvMin[c] = (float)(pTmpVert[iL_in].vert[c]);
 				fvMax[c] = (float)(fvMin[c]);
 			}
 
-			for (l = (int)(iL_in + 1); (l) <= (iR_in); l++)
+			for (l = iL_in + 1; (l) <= (iR_in); l++)
 			{
-				for (c = (int)(0); (c) < (3); c++)
+				for (c = 0; (c) < (3); c++)
 				{
 					if ((fvMin[c]) > (pTmpVert[l].vert[c]))
 						fvMin[c] = (float)(pTmpVert[l].vert[c]);
@@ -1021,71 +1021,71 @@ namespace MikkTSpaceSharp
 			dx = (float)(fvMax[0] - fvMin[0]);
 			dy = (float)(fvMax[1] - fvMin[1]);
 			dz = (float)(fvMax[2] - fvMin[2]);
-			channel = (int)(0);
+			channel = 0;
 			if (((dy) > (dx)) && ((dy) > (dz)))
-				channel = (int)(1);
+				channel = 1;
 			else if ((dz) > (dx))
-				channel = (int)(2);
+				channel = 2;
 			fSep = (float)(0.5 * (fvMax[channel] + fvMin[channel]));
 			if (float.IsInfinity(fSep))
 				return;
 			if (((fSep) >= (fvMax[channel])) || ((fSep) <= (fvMin[channel])))
 			{
-				for (l = (int)(iL_in); (l) <= (iR_in); l++)
+				for (l = iL_in; (l) <= (iR_in); l++)
 				{
-					int i = (int)(pTmpVert[l].index);
-					int index = (int)(piTriList_in_and_out[i]);
-					SVec3 vP = (SVec3)(GetPosition(pContext, (int)(index)));
-					SVec3 vN = (SVec3)(GetNormal(pContext, (int)(index)));
-					SVec3 vT = (SVec3)(GetTexCoord(pContext, (int)(index)));
-					int bNotFound = (int)(1);
-					int l2 = (int)(iL_in);
-					int i2rec = (int)(-1);
+					int i = pTmpVert[l].index;
+					int index = piTriList_in_and_out[i];
+					SVec3 vP = GetPosition(pContext, index);
+					SVec3 vN = GetNormal(pContext, index);
+					SVec3 vT = GetTexCoord(pContext, index);
+					int bNotFound = 1;
+					int l2 = iL_in;
+					int i2rec = -1;
 					while (((l2) < (l)) && ((bNotFound) != 0))
 					{
-						int i2 = (int)(pTmpVert[l2].index);
-						int index2 = (int)(piTriList_in_and_out[i2]);
-						SVec3 vP2 = (SVec3)(GetPosition(pContext, (int)(index2)));
-						SVec3 vN2 = (SVec3)(GetNormal(pContext, (int)(index2)));
-						SVec3 vT2 = (SVec3)(GetTexCoord(pContext, (int)(index2)));
-						i2rec = (int)(i2);
+						int i2 = pTmpVert[l2].index;
+						int index2 = piTriList_in_and_out[i2];
+						SVec3 vP2 = GetPosition(pContext, index2);
+						SVec3 vN2 = GetNormal(pContext, index2);
+						SVec3 vT2 = GetTexCoord(pContext, index2);
+						i2rec = i2;
 						if ((((((((((vP.x) == (vP2.x)) && ((vP.y) == (vP2.y))) && ((vP.z) == (vP2.z))) && ((vN.x) == (vN2.x))) && ((vN.y) == (vN2.y))) && ((vN.z) == (vN2.z))) && ((vT.x) == (vT2.x))) && ((vT.y) == (vT2.y))) && ((vT.z) == (vT2.z)))
-							bNotFound = (int)(0);
+							bNotFound = 0;
 						else
 							++l2;
 					}
 
 					if (bNotFound == 0)
-						piTriList_in_and_out[i] = (int)(piTriList_in_and_out[i2rec]);
+						piTriList_in_and_out[i] = piTriList_in_and_out[i2rec];
 				}
 			}
 			else
 			{
-				int iL = (int)(iL_in);
-				int iR = (int)(iR_in);
+				int iL = iL_in;
+				int iR = iR_in;
 				while ((iL) < (iR))
 				{
-					int bReadyLeftSwap = (int)(0);
-					int bReadyRightSwap = (int)(0);
+					int bReadyLeftSwap = 0;
+					int bReadyRightSwap = 0;
 					while ((bReadyLeftSwap == 0) && ((iL) < (iR)))
 					{
-						bReadyLeftSwap = (int)((pTmpVert[iL].vert[channel]) >= (fSep) ? 1 : 0);
+						bReadyLeftSwap = (pTmpVert[iL].vert[channel]) >= (fSep) ? 1 : 0;
 						if (bReadyLeftSwap == 0)
 							++iL;
 					}
 
 					while ((bReadyRightSwap == 0) && ((iL) < (iR)))
 					{
-						bReadyRightSwap = (int)((pTmpVert[iR].vert[channel]) < (fSep) ? 1 : 0);
+						bReadyRightSwap = (pTmpVert[iR].vert[channel]) < (fSep) ? 1 : 0;
 						if (bReadyRightSwap == 0)
 							--iR;
 					}
 
 					if (((bReadyLeftSwap) != 0) && ((bReadyRightSwap) != 0))
 					{
-						STmpVert sTmp = (STmpVert)(pTmpVert[iL]);
-						pTmpVert[iL] = (STmpVert)(pTmpVert[iR]);
-						pTmpVert[iR] = (STmpVert)(sTmp);
+						STmpVert sTmp = pTmpVert[iL];
+						pTmpVert[iL] = pTmpVert[iR];
+						pTmpVert[iR] = sTmp;
 						++iL;
 						--iR;
 					}
@@ -1093,7 +1093,7 @@ namespace MikkTSpaceSharp
 
 				if ((iL) == (iR))
 				{
-					int bReadyRightSwap = (int)((pTmpVert[iR].vert[channel]) < (fSep) ? 1 : 0);
+					int bReadyRightSwap = (pTmpVert[iR].vert[channel]) < (fSep) ? 1 : 0;
 					if ((bReadyRightSwap) != 0)
 						++iL;
 					else
@@ -1101,70 +1101,70 @@ namespace MikkTSpaceSharp
 				}
 
 				if ((iL_in) < (iR))
-					MergeVertsFast(piTriList_in_and_out, pTmpVert, pContext, (int)(iL_in), (int)(iR));
+					MergeVertsFast(piTriList_in_and_out, pTmpVert, pContext, iL_in, iR);
 				if ((iL) < (iR_in))
-					MergeVertsFast(piTriList_in_and_out, pTmpVert, pContext, (int)(iL), (int)(iR_in));
+					MergeVertsFast(piTriList_in_and_out, pTmpVert, pContext, iL, iR_in);
 			}
 		}
 
 		public static void MergeVertsSlow(int* piTriList_in_and_out, SMikkTSpaceContext pContext, int* pTable, int iEntries)
 		{
-			int e = (int)(0);
-			for (e = (int)(0); (e) < (iEntries); e++)
+			int e = 0;
+			for (e = 0; (e) < (iEntries); e++)
 			{
-				int i = (int)(pTable[e]);
-				int index = (int)(piTriList_in_and_out[i]);
-				SVec3 vP = (SVec3)(GetPosition(pContext, (int)(index)));
-				SVec3 vN = (SVec3)(GetNormal(pContext, (int)(index)));
-				SVec3 vT = (SVec3)(GetTexCoord(pContext, (int)(index)));
-				int bNotFound = (int)(1);
-				int e2 = (int)(0);
-				int i2rec = (int)(-1);
+				int i = pTable[e];
+				int index = piTriList_in_and_out[i];
+				SVec3 vP = GetPosition(pContext, index);
+				SVec3 vN = GetNormal(pContext, index);
+				SVec3 vT = GetTexCoord(pContext, index);
+				int bNotFound = 1;
+				int e2 = 0;
+				int i2rec = -1;
 				while (((e2) < (e)) && ((bNotFound) != 0))
 				{
-					int i2 = (int)(pTable[e2]);
-					int index2 = (int)(piTriList_in_and_out[i2]);
-					SVec3 vP2 = (SVec3)(GetPosition(pContext, (int)(index2)));
-					SVec3 vN2 = (SVec3)(GetNormal(pContext, (int)(index2)));
-					SVec3 vT2 = (SVec3)(GetTexCoord(pContext, (int)(index2)));
-					i2rec = (int)(i2);
-					if ((((veq((SVec3)(vP), (SVec3)(vP2))) != 0) && ((veq((SVec3)(vN), (SVec3)(vN2))) != 0)) && ((veq((SVec3)(vT), (SVec3)(vT2))) != 0))
-						bNotFound = (int)(0);
+					int i2 = pTable[e2];
+					int index2 = piTriList_in_and_out[i2];
+					SVec3 vP2 = GetPosition(pContext, index2);
+					SVec3 vN2 = GetNormal(pContext, index2);
+					SVec3 vT2 = GetTexCoord(pContext, index2);
+					i2rec = i2;
+					if ((((veq(vP, vP2)) != 0) && ((veq(vN, vN2)) != 0)) && ((veq(vT, vT2)) != 0))
+						bNotFound = 0;
 					else
 						++e2;
 				}
 
 				if (bNotFound == 0)
-					piTriList_in_and_out[i] = (int)(piTriList_in_and_out[i2rec]);
+					piTriList_in_and_out[i] = piTriList_in_and_out[i2rec];
 			}
 		}
 
 		public static void GenerateSharedVerticesIndexListSlow(int* piTriList_in_and_out, SMikkTSpaceContext pContext, int iNrTrianglesIn)
 		{
-			int iNumUniqueVerts = (int)(0); int t = (int)(0); int i = (int)(0);
-			for (t = (int)(0); (t) < (iNrTrianglesIn); t++)
+			int iNumUniqueVerts = 0; int t = 0; int i = 0;
+			for (t = 0; (t) < (iNrTrianglesIn); t++)
 			{
-				for (i = (int)(0); (i) < (3); i++)
+				for (i = 0; (i) < (3); i++)
 				{
-					int offs = (int)(t * 3 + i);
-					int index = (int)(piTriList_in_and_out[offs]);
-					SVec3 vP = (SVec3)(GetPosition(pContext, (int)(index)));
-					SVec3 vN = (SVec3)(GetNormal(pContext, (int)(index)));
-					SVec3 vT = (SVec3)(GetTexCoord(pContext, (int)(index)));
-					int bFound = (int)(0);
-					int t2 = (int)(0);
-					int index2rec = (int)(-1);
+					int offs = t * 3 + i;
+					int index = piTriList_in_and_out[offs];
+					SVec3 vP = GetPosition(pContext, index);
+					SVec3 vN = GetNormal(pContext, index);
+					SVec3 vT = GetTexCoord(pContext, index);
+					int bFound = 0;
+					int t2 = 0;
+					int index2rec = -1;
 					while ((bFound == 0) && ((t2) <= (t)))
 					{
-						int j = (int)(0);
+						int j = 0;
 						while ((bFound == 0) && ((j) < (3)))
 						{
-							int index2 = (int)(piTriList_in_and_out[t2 * 3 + j]);
-							SVec3 vP2 = (SVec3)(GetPosition(pContext, (int)(index2)));
-							SVec3 vN2 = (SVec3)(GetNormal(pContext, (int)(index2)));
-							SVec3 vT2 = (SVec3)(GetTexCoord(pContext, (int)(index2)));
-							if ((((veq((SVec3)(vP), (SVec3)(vP2))) != 0) && ((veq((SVec3)(vN), (SVec3)(vN2))) != 0)) && ((veq((SVec3)(vT), (SVec3)(vT2))) != 0))
-								bFound = (int)(1);
+							int index2 = piTriList_in_and_out[t2 * 3 + j];
+							SVec3 vP2 = GetPosition(pContext, index2);
+							SVec3 vN2 = GetNormal(pContext, index2);
+							SVec3 vT2 = GetTexCoord(pContext, index2);
+							if ((((veq(vP, vP2)) != 0) && ((veq(vN, vN2)) != 0)) && ((veq(vT, vT2)) != 0))
+								bFound = 1;
 							else
 								++j;
 						}
@@ -1178,89 +1178,89 @@ namespace MikkTSpaceSharp
 						++iNumUniqueVerts;
 					}
 
-					piTriList_in_and_out[offs] = (int)(index2rec);
+					piTriList_in_and_out[offs] = index2rec;
 				}
 			}
 		}
 
 		public static void BuildNeighborsFast(STriInfo[] pTriInfos, SEdge* pEdges, int* piTriListIn, int iNrTrianglesIn)
 		{
-			uint uSeed = (uint)(39871946);
-			int iEntries = (int)(0); int iCurStartIndex = (int)(-1); int f = (int)(0); int i = (int)(0);
-			for (f = (int)(0); (f) < (iNrTrianglesIn); f++)
+			uint uSeed = 39871946;
+			int iEntries = 0; int iCurStartIndex = -1; int f = 0; int i = 0;
+			for (f = 0; (f) < (iNrTrianglesIn); f++)
 			{
-				for (i = (int)(0); (i) < (3); i++)
+				for (i = 0; (i) < (3); i++)
 				{
-					int i0 = (int)(piTriListIn[f * 3 + i]);
-					int i1 = (int)(piTriListIn[f * 3 + ((i) < (2) ? (i + 1) : 0)]);
-					pEdges[f * 3 + i].i.i0 = (int)((i0) < (i1) ? i0 : i1);
-					pEdges[f * 3 + i].i.i1 = (int)((i0) >= (i1) ? i0 : i1);
-					pEdges[f * 3 + i].i.f = (int)(f);
+					int i0 = piTriListIn[f * 3 + i];
+					int i1 = piTriListIn[f * 3 + ((i) < (2) ? (i + 1) : 0)];
+					pEdges[f * 3 + i].i.i0 = (i0) < (i1) ? i0 : i1;
+					pEdges[f * 3 + i].i.i1 = (i0) >= (i1) ? i0 : i1;
+					pEdges[f * 3 + i].i.f = f;
 				}
 			}
 
-			QuickSortEdges(pEdges, (int)(0), (int)(iNrTrianglesIn * 3 - 1), (int)(0), (uint)(uSeed));
-			iEntries = (int)(iNrTrianglesIn * 3);
-			iCurStartIndex = (int)(0);
-			for (i = (int)(1); (i) < (iEntries); i++)
+			QuickSortEdges(pEdges, 0, iNrTrianglesIn * 3 - 1, 0, uSeed);
+			iEntries = iNrTrianglesIn * 3;
+			iCurStartIndex = 0;
+			for (i = 1; (i) < (iEntries); i++)
 			{
 				if (pEdges[iCurStartIndex].i.i0 != pEdges[i].i.i0)
 				{
-					int iL = (int)(iCurStartIndex);
-					int iR = (int)(i - 1);
-					iCurStartIndex = (int)(i);
-					QuickSortEdges(pEdges, (int)(iL), (int)(iR), (int)(1), (uint)(uSeed));
+					int iL = iCurStartIndex;
+					int iR = i - 1;
+					iCurStartIndex = i;
+					QuickSortEdges(pEdges, iL, iR, 1, uSeed);
 				}
 			}
 
-			iCurStartIndex = (int)(0);
-			for (i = (int)(1); (i) < (iEntries); i++)
+			iCurStartIndex = 0;
+			for (i = 1; (i) < (iEntries); i++)
 			{
 				if ((pEdges[iCurStartIndex].i.i0 != pEdges[i].i.i0) || (pEdges[iCurStartIndex].i.i1 != pEdges[i].i.i1))
 				{
-					int iL = (int)(iCurStartIndex);
-					int iR = (int)(i - 1);
-					iCurStartIndex = (int)(i);
-					QuickSortEdges(pEdges, (int)(iL), (int)(iR), (int)(2), (uint)(uSeed));
+					int iL = iCurStartIndex;
+					int iR = i - 1;
+					iCurStartIndex = i;
+					QuickSortEdges(pEdges, iL, iR, 2, uSeed);
 				}
 			}
 
-			for (i = (int)(0); (i) < (iEntries); i++)
+			for (i = 0; (i) < (iEntries); i++)
 			{
-				int i0 = (int)(pEdges[i].i.i0);
-				int i1 = (int)(pEdges[i].i.i1);
-				int f2 = (int)(pEdges[i].i.f);
+				int i0 = pEdges[i].i.i0;
+				int i1 = pEdges[i].i.i1;
+				int f2 = pEdges[i].i.f;
 				int bUnassigned_A = 0;
 				int i0_A = 0;
 				int i1_A = 0;
 				int edgenum_A = 0;
-				int edgenum_B = (int)(0);
-				GetEdge(&i0_A, &i1_A, &edgenum_A, &piTriListIn[f2 * 3], (int)(i0), (int)(i1));
-				bUnassigned_A = (int)((pTriInfos[f2].FaceNeighbors[edgenum_A]) == (-1) ? 1 : 0);
+				int edgenum_B = 0;
+				GetEdge(&i0_A, &i1_A, &edgenum_A, &piTriListIn[f2 * 3], i0, i1);
+				bUnassigned_A = (pTriInfos[f2].FaceNeighbors[edgenum_A]) == (-1) ? 1 : 0;
 				if ((bUnassigned_A) != 0)
 				{
-					int j = (int)(i + 1);
+					int j = i + 1;
 					int t = 0;
-					int bNotFound = (int)(1);
+					int bNotFound = 1;
 					while (((((j) < (iEntries)) && ((i0) == (pEdges[j].i.i0))) && ((i1) == (pEdges[j].i.i1))) && ((bNotFound) != 0))
 					{
 						int bUnassigned_B = 0;
 						int i0_B = 0;
 						int i1_B = 0;
-						t = (int)(pEdges[j].i.f);
-						GetEdge(&i1_B, &i0_B, &edgenum_B, &piTriListIn[t * 3], (int)(pEdges[j].i.i0), (int)(pEdges[j].i.i1));
-						bUnassigned_B = (int)((pTriInfos[t].FaceNeighbors[edgenum_B]) == (-1) ? 1 : 0);
+						t = pEdges[j].i.f;
+						GetEdge(&i1_B, &i0_B, &edgenum_B, &piTriListIn[t * 3], pEdges[j].i.i0, pEdges[j].i.i1);
+						bUnassigned_B = (pTriInfos[t].FaceNeighbors[edgenum_B]) == (-1) ? 1 : 0;
 						if ((((i0_A) == (i0_B)) && ((i1_A) == (i1_B))) && ((bUnassigned_B) != 0))
-							bNotFound = (int)(0);
+							bNotFound = 0;
 						else
 							++j;
 					}
 
 					if (bNotFound == 0)
 					{
-						int t2 = (int)(pEdges[j].i.f);
-						pTriInfos[f2].FaceNeighbors[edgenum_A] = (int)(t2);
-						pTriInfos[t2].FaceNeighbors[edgenum_B] = (int)(f2);
+						int t2 = pEdges[j].i.f;
+						pTriInfos[f2].FaceNeighbors[edgenum_A] = t2;
+						pTriInfos[t2].FaceNeighbors[edgenum_B] = f2;
 					}
 				}
 			}
@@ -1268,29 +1268,29 @@ namespace MikkTSpaceSharp
 
 		public static void BuildNeighborsSlow(STriInfo[] pTriInfos, int* piTriListIn, int iNrTrianglesIn)
 		{
-			int f = (int)(0); int i = (int)(0);
-			for (f = (int)(0); (f) < (iNrTrianglesIn); f++)
+			int f = 0; int i = 0;
+			for (f = 0; (f) < (iNrTrianglesIn); f++)
 			{
-				for (i = (int)(0); (i) < (3); i++)
+				for (i = 0; (i) < (3); i++)
 				{
 					if ((pTriInfos[f].FaceNeighbors[i]) == (-1))
 					{
-						int i0_A = (int)(piTriListIn[f * 3 + i]);
-						int i1_A = (int)(piTriListIn[f * 3 + ((i) < (2) ? (i + 1) : 0)]);
-						int bFound = (int)(0);
-						int t = (int)(0);
-						int j = (int)(0);
+						int i0_A = piTriListIn[f * 3 + i];
+						int i1_A = piTriListIn[f * 3 + ((i) < (2) ? (i + 1) : 0)];
+						int bFound = 0;
+						int t = 0;
+						int j = 0;
 						while ((bFound == 0) && ((t) < (iNrTrianglesIn)))
 						{
 							if (t != f)
 							{
-								j = (int)(0);
+								j = 0;
 								while ((bFound == 0) && ((j) < (3)))
 								{
-									int i1_B = (int)(piTriListIn[t * 3 + j]);
-									int i0_B = (int)(piTriListIn[t * 3 + ((j) < (2) ? (j + 1) : 0)]);
+									int i1_B = piTriListIn[t * 3 + j];
+									int i0_B = piTriListIn[t * 3 + ((j) < (2) ? (j + 1) : 0)];
 									if (((i0_A) == (i0_B)) && ((i1_A) == (i1_B)))
-										bFound = (int)(1);
+										bFound = 1;
 									else
 										++j;
 								}
@@ -1302,8 +1302,8 @@ namespace MikkTSpaceSharp
 
 						if ((bFound) != 0)
 						{
-							pTriInfos[f].FaceNeighbors[i] = (int)(t);
-							pTriInfos[t].FaceNeighbors[j] = (int)(f);
+							pTriInfos[f].FaceNeighbors[i] = t;
+							pTriInfos[t].FaceNeighbors[j] = f;
 						}
 					}
 				}
@@ -1312,9 +1312,9 @@ namespace MikkTSpaceSharp
 
 		public static float CalcTexArea(SMikkTSpaceContext pContext, int* indices)
 		{
-			SVec3 t1 = (SVec3)(GetTexCoord(pContext, (int)(indices[0])));
-			SVec3 t2 = (SVec3)(GetTexCoord(pContext, (int)(indices[1])));
-			SVec3 t3 = (SVec3)(GetTexCoord(pContext, (int)(indices[2])));
+			SVec3 t1 = GetTexCoord(pContext, indices[0]);
+			SVec3 t2 = GetTexCoord(pContext, indices[1]);
+			SVec3 t3 = GetTexCoord(pContext, indices[2]);
 			float t21x = (float)(t2.x - t1.x);
 			float t21y = (float)(t2.y - t1.y);
 			float t31x = (float)(t3.x - t1.x);
@@ -1326,81 +1326,81 @@ namespace MikkTSpaceSharp
 		public static int AssignRecur(int* piTriListIn, STriInfo[] psTriInfos, int iMyTriIndex, SGroup* pGroup)
 		{
 			STriInfo pMyTriInfo = psTriInfos[iMyTriIndex];
-			int iVertRep = (int)(pGroup->iVertexRepresentitive);
+			int iVertRep = pGroup->iVertexRepresentitive;
 			int* pVerts = &piTriListIn[3 * iMyTriIndex + 0];
-			int i = (int)(-1);
+			int i = -1;
 			if ((pVerts[0]) == (iVertRep))
-				i = (int)(0);
+				i = 0;
 			else if ((pVerts[1]) == (iVertRep))
-				i = (int)(1);
+				i = 1;
 			else if ((pVerts[2]) == (iVertRep))
-				i = (int)(2);
+				i = 2;
 			if ((pMyTriInfo.AssignedGroup[i]) == (pGroup))
-				return (int)(1);
+				return 1;
 			else if (pMyTriInfo.AssignedGroup[i] != null)
-				return (int)(0);
+				return 0;
 			if ((pMyTriInfo.iFlag & 4) != 0)
 			{
 				if ((((pMyTriInfo.AssignedGroup[0]) == (null)) && ((pMyTriInfo.AssignedGroup[1]) == (null))) && ((pMyTriInfo.AssignedGroup[2]) == (null)))
 				{
-					pMyTriInfo.iFlag &= (int)(~8);
-					pMyTriInfo.iFlag |= (int)((pGroup->bOrientPreservering) != 0 ? 8 : 0);
+					pMyTriInfo.iFlag &= ~8;
+					pMyTriInfo.iFlag |= (pGroup->bOrientPreservering) != 0 ? 8 : 0;
 				}
 			}
 
 			{
-				int bOrient = (int)((pMyTriInfo.iFlag & 8) != 0 ? 1 : 0);
+				int bOrient = (pMyTriInfo.iFlag & 8) != 0 ? 1 : 0;
 				if (bOrient != pGroup->bOrientPreservering)
-					return (int)(0);
+					return 0;
 			}
 
-			AddTriToGroup(pGroup, (int)(iMyTriIndex));
+			AddTriToGroup(pGroup, iMyTriIndex);
 			pMyTriInfo.AssignedGroup[i] = pGroup;
 			{
-				int neigh_indexL = (int)(pMyTriInfo.FaceNeighbors[i]);
-				int neigh_indexR = (int)(pMyTriInfo.FaceNeighbors[(i) > (0) ? (i - 1) : 2]);
+				int neigh_indexL = pMyTriInfo.FaceNeighbors[i];
+				int neigh_indexR = pMyTriInfo.FaceNeighbors[(i) > (0) ? (i - 1) : 2];
 				if ((neigh_indexL) >= (0))
-					AssignRecur(piTriListIn, psTriInfos, (int)(neigh_indexL), pGroup);
+					AssignRecur(piTriListIn, psTriInfos, neigh_indexL, pGroup);
 				if ((neigh_indexR) >= (0))
-					AssignRecur(piTriListIn, psTriInfos, (int)(neigh_indexR), pGroup);
+					AssignRecur(piTriListIn, psTriInfos, neigh_indexR, pGroup);
 			}
 
-			return (int)(1);
+			return 1;
 		}
 
 		public static void AddTriToGroup(SGroup* pGroup, int iTriIndex)
 		{
-			pGroup->pFaceIndices[pGroup->iNrFaces] = (int)(iTriIndex);
+			pGroup->pFaceIndices[pGroup->iNrFaces] = iTriIndex;
 			++pGroup->iNrFaces;
 		}
 
 		public static int CompareSubGroups(SSubGroup* pg1, SSubGroup* pg2)
 		{
-			int bStillSame = (int)(1);
-			int i = (int)(0);
+			int bStillSame = 1;
+			int i = 0;
 			if (pg1->iNrFaces != pg2->iNrFaces)
-				return (int)(0);
+				return 0;
 			while (((i) < (pg1->iNrFaces)) && ((bStillSame) != 0))
 			{
-				bStillSame = (int)((pg1->pTriMembers[i]) == (pg2->pTriMembers[i]) ? 1 : 0);
+				bStillSame = (pg1->pTriMembers[i]) == (pg2->pTriMembers[i]) ? 1 : 0;
 				if ((bStillSame) != 0)
 					++i;
 			}
 
-			return (int)(bStillSame);
+			return bStillSame;
 		}
 
 		public static void QuickSort(int* pSortBuffer, int iLeft, int iRight, uint uSeed)
 		{
 			int iL = 0; int iR = 0; int n = 0; int index = 0; int iMid = 0; int iTmp = 0;
-			uint t = (uint)(uSeed & 31);
-			t = (uint)((uSeed << (int)(t)) | (uSeed >> (int)(32 - t)));
-			uSeed = (uint)(uSeed + t + 3);
-			iL = (int)(iLeft);
-			iR = (int)(iRight);
-			n = (int)((iR - iL) + 1);
+			uint t = uSeed & 31;
+			t = (uSeed << (int)(t)) | (uSeed >> (int)(32 - t));
+			uSeed = uSeed + t + 3;
+			iL = iLeft;
+			iR = iRight;
+			n = (iR - iL) + 1;
 			index = ((int)(uSeed % n));
-			iMid = (int)(pSortBuffer[index + iL]);
+			iMid = pSortBuffer[index + iL];
 			do
 			{
 				while ((pSortBuffer[iL]) < (iMid))
@@ -1415,36 +1415,36 @@ namespace MikkTSpaceSharp
 
 				if ((iL) <= (iR))
 				{
-					iTmp = (int)(pSortBuffer[iL]);
-					pSortBuffer[iL] = (int)(pSortBuffer[iR]);
-					pSortBuffer[iR] = (int)(iTmp);
+					iTmp = pSortBuffer[iL];
+					pSortBuffer[iL] = pSortBuffer[iR];
+					pSortBuffer[iR] = iTmp;
 					++iL;
 					--iR;
 				}
 			}
 			while ((iL) <= (iR));
 			if ((iLeft) < (iR))
-				QuickSort(pSortBuffer, (int)(iLeft), (int)(iR), (uint)(uSeed));
+				QuickSort(pSortBuffer, iLeft, iR, uSeed);
 			if ((iL) < (iRight))
-				QuickSort(pSortBuffer, (int)(iL), (int)(iRight), (uint)(uSeed));
+				QuickSort(pSortBuffer, iL, iRight, uSeed);
 		}
 
 		public static STSpace EvalTspace(int* face_indices, int iFaces, int* piTriListIn, STriInfo[] pTriInfos, SMikkTSpaceContext pContext, int iVertexRepresentitive)
 		{
 			STSpace res = new STSpace();
-			float fAngleSum = (float)(0);
-			int face = (int)(0);
-			res.vOs.x = (float)(0);
-			res.vOs.y = (float)(0);
-			res.vOs.z = (float)(0);
-			res.vOt.x = (float)(0);
-			res.vOt.y = (float)(0);
-			res.vOt.z = (float)(0);
-			res.fMagS = (float)(0);
-			res.fMagT = (float)(0);
-			for (face = (int)(0); (face) < (iFaces); face++)
+			float fAngleSum = 0;
+			int face = 0;
+			res.vOs.x = 0;
+			res.vOs.y = 0;
+			res.vOs.z = 0;
+			res.vOt.x = 0;
+			res.vOt.y = 0;
+			res.vOt.z = 0;
+			res.fMagS = 0;
+			res.fMagT = 0;
+			for (face = 0; (face) < (iFaces); face++)
 			{
-				int f = (int)(face_indices[face]);
+				int f = face_indices[face];
 				if ((pTriInfos[f].iFlag & 4) == (0))
 				{
 					SVec3 n = new SVec3();
@@ -1459,63 +1459,63 @@ namespace MikkTSpaceSharp
 					float fAngle = 0;
 					float fMagS = 0;
 					float fMagT = 0;
-					int i = (int)(-1);
-					int index = (int)(-1);
-					int i0 = (int)(-1);
-					int i1 = (int)(-1);
-					int i2 = (int)(-1);
+					int i = -1;
+					int index = -1;
+					int i0 = -1;
+					int i1 = -1;
+					int i2 = -1;
 					if ((piTriListIn[3 * f + 0]) == (iVertexRepresentitive))
-						i = (int)(0);
+						i = 0;
 					else if ((piTriListIn[3 * f + 1]) == (iVertexRepresentitive))
-						i = (int)(1);
+						i = 1;
 					else if ((piTriListIn[3 * f + 2]) == (iVertexRepresentitive))
-						i = (int)(2);
-					index = (int)(piTriListIn[3 * f + i]);
-					n = (SVec3)(GetNormal(pContext, (int)(index)));
-					vOs = (SVec3)(vsub((SVec3)(pTriInfos[f].vOs), (SVec3)(vscale((float)(vdot((SVec3)(n), (SVec3)(pTriInfos[f].vOs))), (SVec3)(n)))));
-					vOt = (SVec3)(vsub((SVec3)(pTriInfos[f].vOt), (SVec3)(vscale((float)(vdot((SVec3)(n), (SVec3)(pTriInfos[f].vOt))), (SVec3)(n)))));
-					if ((VNotZero((SVec3)(vOs))) != 0)
-						vOs = (SVec3)(Normalize((SVec3)(vOs)));
-					if ((VNotZero((SVec3)(vOt))) != 0)
-						vOt = (SVec3)(Normalize((SVec3)(vOt)));
-					i2 = (int)(piTriListIn[3 * f + ((i) < (2) ? (i + 1) : 0)]);
-					i1 = (int)(piTriListIn[3 * f + i]);
-					i0 = (int)(piTriListIn[3 * f + ((i) > (0) ? (i - 1) : 2)]);
-					p0 = (SVec3)(GetPosition(pContext, (int)(i0)));
-					p1 = (SVec3)(GetPosition(pContext, (int)(i1)));
-					p2 = (SVec3)(GetPosition(pContext, (int)(i2)));
-					v1 = (SVec3)(vsub((SVec3)(p0), (SVec3)(p1)));
-					v2 = (SVec3)(vsub((SVec3)(p2), (SVec3)(p1)));
-					v1 = (SVec3)(vsub((SVec3)(v1), (SVec3)(vscale((float)(vdot((SVec3)(n), (SVec3)(v1))), (SVec3)(n)))));
-					if ((VNotZero((SVec3)(v1))) != 0)
-						v1 = (SVec3)(Normalize((SVec3)(v1)));
-					v2 = (SVec3)(vsub((SVec3)(v2), (SVec3)(vscale((float)(vdot((SVec3)(n), (SVec3)(v2))), (SVec3)(n)))));
-					if ((VNotZero((SVec3)(v2))) != 0)
-						v2 = (SVec3)(Normalize((SVec3)(v2)));
-					fCos = (float)(vdot((SVec3)(v1), (SVec3)(v2)));
+						i = 2;
+					index = piTriListIn[3 * f + i];
+					n = GetNormal(pContext, index);
+					vOs = vsub(pTriInfos[f].vOs, vscale((float)(vdot(n, pTriInfos[f].vOs)), n));
+					vOt = vsub(pTriInfos[f].vOt, vscale((float)(vdot(n, pTriInfos[f].vOt)), n));
+					if ((VNotZero(vOs)) != 0)
+						vOs = Normalize(vOs);
+					if ((VNotZero(vOt)) != 0)
+						vOt = Normalize(vOt);
+					i2 = piTriListIn[3 * f + ((i) < (2) ? (i + 1) : 0)];
+					i1 = piTriListIn[3 * f + i];
+					i0 = piTriListIn[3 * f + ((i) > (0) ? (i - 1) : 2)];
+					p0 = GetPosition(pContext, i0);
+					p1 = GetPosition(pContext, i1);
+					p2 = GetPosition(pContext, i2);
+					v1 = vsub(p0, p1);
+					v2 = vsub(p2, p1);
+					v1 = vsub(v1, vscale((float)(vdot(n, v1)), n));
+					if ((VNotZero(v1)) != 0)
+						v1 = Normalize(v1);
+					v2 = vsub(v2, vscale((float)(vdot(n, v2)), n));
+					if ((VNotZero(v2)) != 0)
+						v2 = Normalize(v2);
+					fCos = (float)(vdot(v1, v2));
 					fCos = (float)((fCos) > (1) ? 1 : ((fCos) < (-1) ? (-1) : fCos));
 					fAngle = ((float)(CRuntime.acos((double)(fCos))));
-					fMagS = (float)(pTriInfos[f].fMagS);
-					fMagT = (float)(pTriInfos[f].fMagT);
-					res.vOs = (SVec3)(vadd((SVec3)(res.vOs), (SVec3)(vscale((float)(fAngle), (SVec3)(vOs)))));
-					res.vOt = (SVec3)(vadd((SVec3)(res.vOt), (SVec3)(vscale((float)(fAngle), (SVec3)(vOt)))));
-					res.fMagS += (float)(fAngle * fMagS);
-					res.fMagT += (float)(fAngle * fMagT);
+					fMagS = pTriInfos[f].fMagS;
+					fMagT = pTriInfos[f].fMagT;
+					res.vOs = vadd(res.vOs, vscale((float)(fAngle), vOs));
+					res.vOt = vadd(res.vOt, vscale((float)(fAngle), vOt));
+					res.fMagS += fAngle * fMagS;
+					res.fMagT += fAngle * fMagT;
 					fAngleSum += (float)(fAngle);
 				}
 			}
 
-			if ((VNotZero((SVec3)(res.vOs))) != 0)
-				res.vOs = (SVec3)(Normalize((SVec3)(res.vOs)));
-			if ((VNotZero((SVec3)(res.vOt))) != 0)
-				res.vOt = (SVec3)(Normalize((SVec3)(res.vOt)));
+			if ((VNotZero(res.vOs)) != 0)
+				res.vOs = Normalize(res.vOs);
+			if ((VNotZero(res.vOt)) != 0)
+				res.vOt = Normalize(res.vOt);
 			if ((fAngleSum) > (0))
 			{
-				res.fMagS /= (float)(fAngleSum);
-				res.fMagT /= (float)(fAngleSum);
+				res.fMagS /= fAngleSum;
+				res.fMagT /= fAngleSum;
 			}
 
-			return (STSpace)(res);
+			return res;
 		}
 
 		public static void QuickSortEdges(SEdge* pSortBuffer, int iLeft, int iRight, int channel, uint uSeed)
@@ -1523,29 +1523,29 @@ namespace MikkTSpaceSharp
 			uint t = 0;
 			int iL = 0; int iR = 0; int n = 0; int index = 0; int iMid = 0;
 			SEdge sTmp = new SEdge();
-			int iElems = (int)(iRight - iLeft + 1);
+			int iElems = iRight - iLeft + 1;
 			if ((iElems) < (2))
 				return;
 			else if ((iElems) == (2))
 			{
 				if ((pSortBuffer[iLeft].array[channel]) > (pSortBuffer[iRight].array[channel]))
 				{
-					sTmp = (SEdge)(pSortBuffer[iLeft]);
-					pSortBuffer[iLeft] = (SEdge)(pSortBuffer[iRight]);
-					pSortBuffer[iRight] = (SEdge)(sTmp);
+					sTmp = pSortBuffer[iLeft];
+					pSortBuffer[iLeft] = pSortBuffer[iRight];
+					pSortBuffer[iRight] = sTmp;
 				}
 
 				return;
 			}
 
-			t = (uint)(uSeed & 31);
-			t = (uint)((uSeed << (int)(t)) | (uSeed >> (int)(32 - t)));
-			uSeed = (uint)(uSeed + t + 3);
-			iL = (int)(iLeft);
-			iR = (int)(iRight);
-			n = (int)((iR - iL) + 1);
+			t = uSeed & 31;
+			t = (uSeed << (int)(t)) | (uSeed >> (int)(32 - t));
+			uSeed = uSeed + t + 3;
+			iL = iLeft;
+			iR = iRight;
+			n = (iR - iL) + 1;
 			index = ((int)(uSeed % n));
-			iMid = (int)(pSortBuffer[index + iL].array[channel]);
+			iMid = pSortBuffer[index + iL].array[channel];
 			do
 			{
 				while ((pSortBuffer[iL].array[channel]) < (iMid))
@@ -1560,43 +1560,43 @@ namespace MikkTSpaceSharp
 
 				if ((iL) <= (iR))
 				{
-					sTmp = (SEdge)(pSortBuffer[iL]);
-					pSortBuffer[iL] = (SEdge)(pSortBuffer[iR]);
-					pSortBuffer[iR] = (SEdge)(sTmp);
+					sTmp = pSortBuffer[iL];
+					pSortBuffer[iL] = pSortBuffer[iR];
+					pSortBuffer[iR] = sTmp;
 					++iL;
 					--iR;
 				}
 			}
 			while ((iL) <= (iR));
 			if ((iLeft) < (iR))
-				QuickSortEdges(pSortBuffer, (int)(iLeft), (int)(iR), (int)(channel), (uint)(uSeed));
+				QuickSortEdges(pSortBuffer, iLeft, iR, channel, uSeed);
 			if ((iL) < (iRight))
-				QuickSortEdges(pSortBuffer, (int)(iL), (int)(iRight), (int)(channel), (uint)(uSeed));
+				QuickSortEdges(pSortBuffer, iL, iRight, channel, uSeed);
 		}
 
 		public static void GetEdge(int* i0_out, int* i1_out, int* edgenum_out, int* indices, int i0_in, int i1_in)
 		{
-			*edgenum_out = (int)(-1);
+			*edgenum_out = -1;
 			if (((indices[0]) == (i0_in)) || ((indices[0]) == (i1_in)))
 			{
 				if (((indices[1]) == (i0_in)) || ((indices[1]) == (i1_in)))
 				{
-					edgenum_out[0] = (int)(0);
-					i0_out[0] = (int)(indices[0]);
-					i1_out[0] = (int)(indices[1]);
+					edgenum_out[0] = 0;
+					i0_out[0] = indices[0];
+					i1_out[0] = indices[1];
 				}
 				else
 				{
-					edgenum_out[0] = (int)(2);
-					i0_out[0] = (int)(indices[2]);
-					i1_out[0] = (int)(indices[0]);
+					edgenum_out[0] = 2;
+					i0_out[0] = indices[2];
+					i1_out[0] = indices[0];
 				}
 			}
 			else
 			{
-				edgenum_out[0] = (int)(1);
-				i0_out[0] = (int)(indices[1]);
-				i1_out[0] = (int)(indices[2]);
+				edgenum_out[0] = 1;
+				i0_out[0] = indices[1];
+				i1_out[0] = indices[2];
 			}
 		}
 	}
