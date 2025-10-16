@@ -21,7 +21,7 @@ namespace MikkTSpaceSharp
 			{
 				return false;
 			}
-			
+
 			// count triangles on supported faces
 			var iNrTrianglesIn = 0;
 			for (var f = 0; f < iNrFaces; f++)
@@ -77,7 +77,7 @@ namespace MikkTSpaceSharp
 				SVec3 p0 = GetPosition(pContext, i0);
 				SVec3 p1 = GetPosition(pContext, i1);
 				SVec3 p2 = GetPosition(pContext, i2);
-				if ((veq(p0, p1) != 0) || (veq(p0, p2) != 0) || (veq(p1, p2) != 0))
+				if (p0 == p1 || p0 == p2 || p1 == p2)
 				{
 					pTriInfos[t].iFlag |= 1;
 					++iDegenTriangles;
@@ -111,9 +111,9 @@ namespace MikkTSpaceSharp
 				{
 					CRuntime.free(piGroupTrianglesBuffer);
 				}
-				
+
 				CRuntime.free(piTriListIn);
-				
+
 				return false;
 			}
 
@@ -195,68 +195,6 @@ namespace MikkTSpaceSharp
 			return true;
 		}
 
-		public static int veq(SVec3 v1, SVec3 v2)
-		{
-			return (v1.x == v2.x) && (v1.y == v2.y) && (v1.z == v2.z) ? 1 : 0;
-		}
-
-		public static SVec3 vadd(SVec3 v1, SVec3 v2)
-		{
-			SVec3 vRes = new SVec3();
-			vRes.x = v1.x + v2.x;
-			vRes.y = v1.y + v2.y;
-			vRes.z = v1.z + v2.z;
-			return vRes;
-		}
-
-		public static SVec3 vsub(SVec3 v1, SVec3 v2)
-		{
-			SVec3 vRes = new SVec3();
-			vRes.x = v1.x - v2.x;
-			vRes.y = v1.y - v2.y;
-			vRes.z = v1.z - v2.z;
-			return vRes;
-		}
-
-		public static SVec3 vscale(float fS, SVec3 v)
-		{
-			SVec3 vRes = new SVec3();
-			vRes.x = fS * v.x;
-			vRes.y = fS * v.y;
-			vRes.z = fS * v.z;
-			return vRes;
-		}
-
-		public static float LengthSquared(SVec3 v)
-		{
-			return (float)(v.x * v.x + v.y * v.y + v.z * v.z);
-		}
-
-		public static float Length(SVec3 v)
-		{
-			return (float)CRuntime.sqrtf((float)LengthSquared(v));
-		}
-
-		public static SVec3 Normalize(SVec3 v)
-		{
-			return vscale((float)(1 / Length(v)), v);
-		}
-
-		public static float vdot(SVec3 v1, SVec3 v2)
-		{
-			return (float)(v1.x * v2.x + v1.y * v2.y + v1.z * v2.z);
-		}
-
-		public static int NotZero(float fX)
-		{
-			return CRuntime.fabsf((float)fX) > 1.1754943508222875E-38 ? 1 : 0;
-		}
-
-		public static int VNotZero(SVec3 v)
-		{
-			return (NotZero(v.x) != 0) || (NotZero(v.y) != 0) || (NotZero(v.z) != 0) ? 1 : 0;
-		}
-
 		public static int GenerateInitialVerticesIndexList(STriInfo[] pTriInfos, int* piTriList_out, SMikkTSpaceContext pContext, int iNrTrianglesIn)
 		{
 			int iTSpacesOffs = 0; int f = 0; int t = 0;
@@ -295,8 +233,8 @@ namespace MikkTSpaceSharp
 						SVec3 T1 = GetTexCoord(pContext, i1);
 						SVec3 T2 = GetTexCoord(pContext, i2);
 						SVec3 T3 = GetTexCoord(pContext, i3);
-						float distSQ_02 = (float)LengthSquared(vsub(T2, T0));
-						float distSQ_13 = (float)LengthSquared(vsub(T3, T1));
+						float distSQ_02 = (T2 - T0).LengthSquared();
+						float distSQ_13 = (T3 - T1).LengthSquared();
 						int bQuadDiagIs_02 = 0;
 						if (distSQ_02 < distSQ_13)
 							bQuadDiagIs_02 = 1;
@@ -308,8 +246,8 @@ namespace MikkTSpaceSharp
 							SVec3 P1 = GetPosition(pContext, i1);
 							SVec3 P2 = GetPosition(pContext, i2);
 							SVec3 P3 = GetPosition(pContext, i3);
-							float distSQ_02_2 = (float)LengthSquared(vsub(P2, P0));
-							float distSQ_13_2 = (float)LengthSquared(vsub(P3, P1));
+							float distSQ_02_2 = (P2 - P0).LengthSquared();
+							float distSQ_13_2 = (P3 - P1).LengthSquared();
 							bQuadDiagIs_02 = distSQ_13_2 < distSQ_02_2 ? 0 : 1;
 						}
 
@@ -403,7 +341,7 @@ namespace MikkTSpaceSharp
 					vMax.z = vP.z;
 			}
 
-			vDim = vsub(vMax, vMin);
+			vDim = vMax - vMin;
 			iChannel = 0;
 			fMin = vMin.x;
 			fMax = vMax.x;
@@ -547,26 +485,28 @@ namespace MikkTSpaceSharp
 				float t21y = (float)(t2.y - t1.y);
 				float t31x = (float)(t3.x - t1.x);
 				float t31y = (float)(t3.y - t1.y);
-				SVec3 d1 = vsub(v2, v1);
-				SVec3 d2 = vsub(v3, v1);
+				SVec3 d1 = v2 - v1;
+				SVec3 d2 = v3 - v1;
 				float fSignedAreaSTx2 = (float)(t21x * t31y - t21y * t31x);
-				SVec3 vOs = vsub(vscale((float)t31y, d1), vscale((float)t21y, d2));
-				SVec3 vOt = vadd(vscale((float)-t31x, d1), vscale((float)t21x, d2));
+				SVec3 vOs = t31y * d1 - t21y * d2;
+				SVec3 vOt = -t31x * d1 + t21x * d2;
 				pTriInfos[f].iFlag |= fSignedAreaSTx2 > 0 ? 8 : 0;
-				if (NotZero((float)fSignedAreaSTx2) != 0)
+				if (fSignedAreaSTx2.NotZero())
 				{
 					float fAbsArea = (float)CRuntime.fabsf((float)fSignedAreaSTx2);
-					float fLenOs = (float)Length(vOs);
-					float fLenOt = (float)Length(vOt);
+					float fLenOs = vOs.Length();
+					float fLenOt = vOt.Length();
 					float fS = (pTriInfos[f].iFlag & 8) == 0 ? (-1) : 1;
-					if (NotZero((float)fLenOs) != 0)
-						pTriInfos[f].vOs = vscale((float)(fS / fLenOs), vOs);
-					if (NotZero((float)fLenOt) != 0)
-						pTriInfos[f].vOt = vscale((float)(fS / fLenOt), vOt);
+					if (fLenOs.NotZero())
+						pTriInfos[f].vOs = (fS / fLenOs) * vOs;
+					if (fLenOt.NotZero())
+						pTriInfos[f].vOt = (fS / fLenOt) * vOt;
 					pTriInfos[f].fMagS = fLenOs / fAbsArea;
 					pTriInfos[f].fMagT = fLenOt / fAbsArea;
-					if ((NotZero(pTriInfos[f].fMagS) != 0) && (NotZero(pTriInfos[f].fMagT) != 0))
+					if (pTriInfos[f].fMagS.NotZero() && pTriInfos[f].fMagT.NotZero())
+					{
 						pTriInfos[f].iFlag &= ~4;
+					}
 				}
 			}
 
@@ -719,29 +659,29 @@ namespace MikkTSpaceSharp
 						index = 2;
 					iVertIndex = piTriListIn[f * 3 + index];
 					n = GetNormal(pContext, iVertIndex);
-					vOs = vsub(pTriInfos[f].vOs, vscale((float)vdot(n, pTriInfos[f].vOs), n));
-					vOt = vsub(pTriInfos[f].vOt, vscale((float)vdot(n, pTriInfos[f].vOt), n));
-					if (VNotZero(vOs) != 0)
-						vOs = Normalize(vOs);
-					if (VNotZero(vOt) != 0)
-						vOt = Normalize(vOt);
+					vOs = pTriInfos[f].vOs - SVec3.Dot(n, pTriInfos[f].vOs) * n;
+					vOs.Normalize();
+					
+					vOt = pTriInfos[f].vOt - SVec3.Dot(n, pTriInfos[f].vOt) * n;
+					vOt.Normalize();
+
 					iOF_1 = pTriInfos[f].iOrgFaceNumber;
 					iMembers = 0;
 					for (j = 0; j < pGroup->iNrFaces; j++)
 					{
 						int t = pGroup->pFaceIndices[j];
 						int iOF_2 = pTriInfos[t].iOrgFaceNumber;
-						SVec3 vOs2 = vsub(pTriInfos[t].vOs, vscale((float)vdot(n, pTriInfos[t].vOs), n));
-						SVec3 vOt2 = vsub(pTriInfos[t].vOt, vscale((float)vdot(n, pTriInfos[t].vOt), n));
-						if (VNotZero(vOs2) != 0)
-							vOs2 = Normalize(vOs2);
-						if (VNotZero(vOt2) != 0)
-							vOt2 = Normalize(vOt2);
+						SVec3 vOs2 = pTriInfos[t].vOs - SVec3.Dot(n, pTriInfos[t].vOs) * n;
+						vOs2.Normalize();
+
+						SVec3 vOt2 = pTriInfos[t].vOt - SVec3.Dot(n, pTriInfos[t].vOt) * n;
+						vOt2.Normalize();
+
 						{
 							int bAny = ((pTriInfos[f].iFlag | pTriInfos[t].iFlag) & 4) != 0 ? 1 : 0;
 							int bSameOrgFace = iOF_1 == iOF_2 ? 1 : 0;
-							float fCosS = (float)vdot(vOs, vOs2);
-							float fCosT = (float)vdot(vOt, vOt2);
+							float fCosS = (float)SVec3.Dot(vOs, vOs2);
+							float fCosT = (float)SVec3.Dot(vOt, vOt2);
 							if ((bAny != 0) || (bSameOrgFace != 0) || ((fCosS > fThresCos) && (fCosT > fThresCos)))
 								pTmpMembers[iMembers++] = t;
 						}
@@ -835,7 +775,7 @@ namespace MikkTSpaceSharp
 		public static STSpace AvgTSpace(STSpace* pTS0, STSpace* pTS1)
 		{
 			STSpace ts_res = new STSpace();
-			if ((pTS0->fMagS == pTS1->fMagS) && (pTS0->fMagT == pTS1->fMagT) && (veq(pTS0->vOs, pTS1->vOs) != 0) && (veq(pTS0->vOt, pTS1->vOt) != 0))
+			if ((pTS0->fMagS == pTS1->fMagS) && (pTS0->fMagT == pTS1->fMagT) && (pTS0->vOs == pTS1->vOs) && (pTS0->vOt == pTS1->vOt))
 			{
 				ts_res.fMagS = pTS0->fMagS;
 				ts_res.fMagT = pTS0->fMagT;
@@ -846,12 +786,11 @@ namespace MikkTSpaceSharp
 			{
 				ts_res.fMagS = (float)(0.5 * (pTS0->fMagS + pTS1->fMagS));
 				ts_res.fMagT = (float)(0.5 * (pTS0->fMagT + pTS1->fMagT));
-				ts_res.vOs = vadd(pTS0->vOs, pTS1->vOs);
-				ts_res.vOt = vadd(pTS0->vOt, pTS1->vOt);
-				if (VNotZero(ts_res.vOs) != 0)
-					ts_res.vOs = Normalize(ts_res.vOs);
-				if (VNotZero(ts_res.vOt) != 0)
-					ts_res.vOt = Normalize(ts_res.vOt);
+				ts_res.vOs = pTS0->vOs + pTS1->vOs;
+				ts_res.vOs.Normalize();
+
+				ts_res.vOt = pTS0->vOt + pTS1->vOt;
+				ts_res.vOt.Normalize();
 			}
 
 			return ts_res;
@@ -1021,14 +960,16 @@ namespace MikkTSpaceSharp
 					{
 						int iVert = pV[j];
 						SVec3 vSrcP = GetPosition(pContext, MakeIndex(iOrgF, iVert));
-						if (veq(vSrcP, vDstP) == 1)
+						if (vSrcP == vDstP)
 						{
 							int iOffs = pTriInfos[t].iTSpacesOffs;
 							psTspace[iOffs + iMissingIndex] = psTspace[iOffs + iVert];
 							bNotFound = 0;
 						}
 						else
+						{
 							++j;
+						}
 					}
 				}
 			}
@@ -1173,7 +1114,7 @@ namespace MikkTSpaceSharp
 					SVec3 vN2 = GetNormal(pContext, index2);
 					SVec3 vT2 = GetTexCoord(pContext, index2);
 					i2rec = i2;
-					if ((veq(vP, vP2) != 0) && (veq(vN, vN2) != 0) && (veq(vT, vT2) != 0))
+					if (vP == vP2 && vN == vN2 && vT == vT2)
 						bNotFound = 0;
 					else
 						++e2;
@@ -1208,7 +1149,7 @@ namespace MikkTSpaceSharp
 							SVec3 vP2 = GetPosition(pContext, index2);
 							SVec3 vN2 = GetNormal(pContext, index2);
 							SVec3 vT2 = GetTexCoord(pContext, index2);
-							if ((veq(vP, vP2) != 0) && (veq(vN, vN2) != 0) && (veq(vT, vT2) != 0))
+							if (vP == vP2 && vN == vN2 && vT == vT2)
 								bFound = 1;
 							else
 								++j;
@@ -1517,43 +1458,40 @@ namespace MikkTSpaceSharp
 						i = 2;
 					index = piTriListIn[3 * f + i];
 					n = GetNormal(pContext, index);
-					vOs = vsub(pTriInfos[f].vOs, vscale((float)vdot(n, pTriInfos[f].vOs), n));
-					vOt = vsub(pTriInfos[f].vOt, vscale((float)vdot(n, pTriInfos[f].vOt), n));
-					if (VNotZero(vOs) != 0)
-						vOs = Normalize(vOs);
-					if (VNotZero(vOt) != 0)
-						vOt = Normalize(vOt);
+					vOs = pTriInfos[f].vOs - SVec3.Dot(n, pTriInfos[f].vOs) * n;
+					vOs.Normalize();
+
+					vOt = pTriInfos[f].vOt - SVec3.Dot(n, pTriInfos[f].vOt) * n;
+					vOt.Normalize();
+
 					i2 = piTriListIn[3 * f + (i < 2 ? (i + 1) : 0)];
 					i1 = piTriListIn[3 * f + i];
 					i0 = piTriListIn[3 * f + (i > 0 ? (i - 1) : 2)];
 					p0 = GetPosition(pContext, i0);
 					p1 = GetPosition(pContext, i1);
 					p2 = GetPosition(pContext, i2);
-					v1 = vsub(p0, p1);
-					v2 = vsub(p2, p1);
-					v1 = vsub(v1, vscale((float)vdot(n, v1), n));
-					if (VNotZero(v1) != 0)
-						v1 = Normalize(v1);
-					v2 = vsub(v2, vscale((float)vdot(n, v2), n));
-					if (VNotZero(v2) != 0)
-						v2 = Normalize(v2);
-					fCos = (float)vdot(v1, v2);
+					v1 = p0 - p1;
+					v2 = p2 - p1;
+					v1 = v1 - SVec3.Dot(n, v1) * n;
+					v1.Normalize();
+					v2 = v2 - SVec3.Dot(n, v2) * n;
+					v2.Normalize();
+
+					fCos = (float)SVec3.Dot(v1, v2);
 					fCos = (float)(fCos > 1 ? 1 : (fCos < (-1) ? (-1) : fCos));
 					fAngle = (float)CRuntime.acos((double)fCos);
 					fMagS = pTriInfos[f].fMagS;
 					fMagT = pTriInfos[f].fMagT;
-					res.vOs = vadd(res.vOs, vscale((float)fAngle, vOs));
-					res.vOt = vadd(res.vOt, vscale((float)fAngle, vOt));
+					res.vOs = res.vOs + fAngle * vOs;
+					res.vOt = res.vOt + fAngle * vOt;
 					res.fMagS += fAngle * fMagS;
 					res.fMagT += fAngle * fMagT;
 					fAngleSum += (float)fAngle;
 				}
 			}
 
-			if (VNotZero(res.vOs) != 0)
-				res.vOs = Normalize(res.vOs);
-			if (VNotZero(res.vOt) != 0)
-				res.vOt = Normalize(res.vOt);
+			res.vOs.Normalize();
+			res.vOt.Normalize();
 			if (fAngleSum > 0)
 			{
 				res.fMagS /= fAngleSum;

@@ -40,22 +40,6 @@ namespace MikkTSpaceSharp
 			public override string ToString() => $"{x}, {y}";
 		}
 
-		public struct SVec3
-		{
-			public float x;
-			public float y;
-			public float z;
-
-			public SVec3(float xx, float yy, float zz)
-			{
-				x = xx;
-				y = yy;
-				z = zz;
-			}
-
-			public override string ToString() => $"{x}, {y}, {z}";
-		}
-
 		public unsafe struct SSubGroup
 		{
 			public int iNrFaces;
