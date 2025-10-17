@@ -150,7 +150,7 @@ namespace MikkTSpaceSharp
 			// clean up
 			CRuntime.free(pGroups);
 			CRuntime.free(piGroupTrianglesBuffer);
-			if (bRes == 0)
+			if (!bRes)
 			{
 				// clean up and return false
 				CRuntime.free(piTriListIn);
@@ -178,7 +178,7 @@ namespace MikkTSpaceSharp
 				{
 					STSpace* pTSpace = &psTspace[index];
 					pContext.m_setTSpace?.Invoke(pTSpace->vOs, pTSpace->vOt, pTSpace->fMagS, pTSpace->fMagT, pTSpace->bOrient, f, i);
-					pContext.m_setTSpaceBasic?.Invoke(pTSpace->vOs, pTSpace->bOrient == 1 ? 1 : (-1), f, i);
+					pContext.m_setTSpaceBasic?.Invoke(pTSpace->vOs, pTSpace->bOrient ? 1 : (-1), f, i);
 
 					++index;
 				}
@@ -232,11 +232,11 @@ namespace MikkTSpaceSharp
 						SVec3 T3 = GetTexCoord(pContext, i3);
 						float distSQ_02 = (T2 - T0).LengthSquared();
 						float distSQ_13 = (T3 - T1).LengthSquared();
-						int bQuadDiagIs_02 = 0;
+						var bQuadDiagIs_02 = false;
 						if (distSQ_02 < distSQ_13)
-							bQuadDiagIs_02 = 1;
+							bQuadDiagIs_02 = true;
 						else if (distSQ_13 < distSQ_02)
-							bQuadDiagIs_02 = 0;
+							bQuadDiagIs_02 = false;
 						else
 						{
 							SVec3 P0 = GetPosition(pContext, i0);
@@ -245,10 +245,10 @@ namespace MikkTSpaceSharp
 							SVec3 P3 = GetPosition(pContext, i3);
 							float distSQ_02_2 = (P2 - P0).LengthSquared();
 							float distSQ_13_2 = (P3 - P1).LengthSquared();
-							bQuadDiagIs_02 = distSQ_13_2 < distSQ_02_2 ? 0 : 1;
+							bQuadDiagIs_02 = distSQ_13_2 < distSQ_02_2 ? false : true;
 						}
 
-						if (bQuadDiagIs_02 != 0)
+						if (bQuadDiagIs_02)
 						{
 							{
 								byte[] pVerts_A = pTriInfos[iDstTriIndex].vert_num;
@@ -533,29 +533,29 @@ namespace MikkTSpaceSharp
 				int iFO_b = pTriInfos[t + 1].iOrgFaceNumber;
 				if (iFO_a == iFO_b) // this is a quad
 				{
-					int bIsDeg_a = (pTriInfos[t].iFlag & 1) != 0 ? 1 : 0;
-					int bIsDeg_b = (pTriInfos[t + 1].iFlag & 1) != 0 ? 1 : 0;
+					var bIsDeg_a = (pTriInfos[t].iFlag & 1) != 0;
+					var bIsDeg_b = (pTriInfos[t + 1].iFlag & 1) != 0;
 
 					// bad triangles should already have been removed by
 					// DegenPrologue(), but just in case check bIsDeg_a and bIsDeg_a are false
-					if ((bIsDeg_a == 0) && (bIsDeg_b == 0))
+					if ((!bIsDeg_a) && (!bIsDeg_b))
 					{
-						int bOrientA = (pTriInfos[t].iFlag & 8) != 0 ? 1 : 0;
-						int bOrientB = (pTriInfos[t + 1].iFlag & 8) != 0 ? 1 : 0;
+						var bOrientA = (pTriInfos[t].iFlag & 8) != 0;
+						var bOrientB = (pTriInfos[t + 1].iFlag & 8) != 0;
 
 						// if this happens the quad has extremely bad mapping!!
 						if (bOrientA != bOrientB)
 						{
-							int bChooseOrientFirstTri = 0;
+							var bChooseOrientFirstTri = false;
 							if ((pTriInfos[t + 1].iFlag & 4) != 0)
-								bChooseOrientFirstTri = 1;
+								bChooseOrientFirstTri = true;
 							else if (CalcTexArea(pContext, &piTriListIn[t * 3 + 0]) >= CalcTexArea(pContext, &piTriListIn[(t + 1) * 3 + 0]))
-								bChooseOrientFirstTri = 1;
+								bChooseOrientFirstTri = true;
 
 							// force match
 							{
-								int t0 = bChooseOrientFirstTri != 0 ? t : (t + 1);
-								int t1 = bChooseOrientFirstTri != 0 ? (t + 1) : t;
+								int t0 = bChooseOrientFirstTri ? t : (t + 1);
+								int t1 = bChooseOrientFirstTri ? (t + 1) : t;
 								pTriInfos[t1].iFlag &= ~8;
 								pTriInfos[t1].iFlag |= pTriInfos[t0].iFlag & 8;
 							}
@@ -593,34 +593,34 @@ namespace MikkTSpaceSharp
 					// if not assigned to a group
 					if (((pTriInfos[f].iFlag & 4) == 0) && (pTriInfos[f].AssignedGroup[i] == null))
 					{
-						int bOrPre = 0;
+						var bOrPre = false;
 						int neigh_indexL = 0;
 						int neigh_indexR = 0;
 						int vert_index = piTriListIn[f * 3 + i];
 						pTriInfos[f].AssignedGroup[i] = &pGroups[iNrActiveGroups];
 						pTriInfos[f].AssignedGroup[i]->iVertexRepresentitive = vert_index;
-						pTriInfos[f].AssignedGroup[i]->bOrientPreservering = ((pTriInfos[f].iFlag & 8) != 0) ? 1 : 0;
+						pTriInfos[f].AssignedGroup[i]->bOrientPreservering = ((pTriInfos[f].iFlag & 8) != 0);
 						pTriInfos[f].AssignedGroup[i]->iNrFaces = 0;
 						pTriInfos[f].AssignedGroup[i]->pFaceIndices = &piGroupTrianglesBuffer[iOffset];
 						++iNrActiveGroups;
 						AddTriToGroup(pTriInfos[f].AssignedGroup[i], f);
-						bOrPre = (pTriInfos[f].iFlag & 8) != 0 ? 1 : 0;
+						bOrPre = (pTriInfos[f].iFlag & 8) != 0;
 						neigh_indexL = pTriInfos[f].FaceNeighbors[i];
 						neigh_indexR = pTriInfos[f].FaceNeighbors[i > 0 ? (i - 1) : 2];
 						if (neigh_indexL >= 0) // neighbor
 						{
-							int bAnswer = AssignRecur(piTriListIn, pTriInfos, neigh_indexL, pTriInfos[f].AssignedGroup[i]);
-							int bOrPre2 = (pTriInfos[neigh_indexL].iFlag & 8) != 0 ? 1 : 0;
-							int bDiff = bOrPre != bOrPre2 ? 1 : 0;
-							Debug.Assert(bAnswer != 0 || bDiff != 0);
+							var bAnswer = AssignRecur(piTriListIn, pTriInfos, neigh_indexL, pTriInfos[f].AssignedGroup[i]);
+							var bOrPre2 = (pTriInfos[neigh_indexL].iFlag & 8) != 0;
+							var bDiff = bOrPre != bOrPre2;
+							Debug.Assert(bAnswer || bDiff);
 						}
 
 						if (neigh_indexR >= 0) // neighbor
 						{
-							int bAnswer = AssignRecur(piTriListIn, pTriInfos, neigh_indexR, pTriInfos[f].AssignedGroup[i]);
-							int bOrPre2 = (pTriInfos[neigh_indexR].iFlag & 8) != 0 ? 1 : 0;
-							int bDiff = bOrPre != bOrPre2 ? 1 : 0;
-							Debug.Assert(bAnswer != 0 || bDiff != 0);
+							var bAnswer = AssignRecur(piTriListIn, pTriInfos, neigh_indexR, pTriInfos[f].AssignedGroup[i]);
+							var bOrPre2 = (pTriInfos[neigh_indexR].iFlag & 8) != 0;
+							var bDiff = bOrPre != bOrPre2;
+							Debug.Assert(bAnswer || bDiff);
 						}
 
 						// update offset
@@ -637,7 +637,7 @@ namespace MikkTSpaceSharp
 			return iNrActiveGroups;
 		}
 
-		public static int GenerateTSpaces(STSpace* psTspace, STriInfo[] pTriInfos, SGroup* pGroups, int iNrActiveGroups, int* piTriListIn, float fThresCos, SMikkTSpaceContext pContext)
+		public static bool GenerateTSpaces(STSpace* psTspace, STriInfo[] pTriInfos, SGroup* pGroups, int iNrActiveGroups, int* piTriListIn, float fThresCos, SMikkTSpaceContext pContext)
 		{
 			int iMaxNrFaces = 0;
 			for (var g = 0; g < iNrActiveGroups; g++)
@@ -647,7 +647,7 @@ namespace MikkTSpaceSharp
 			}
 
 			if (iMaxNrFaces == 0)
-				return 1;
+				return true;
 
 			// make initial allocations
 			var pSubGroupTspace = (STSpace*)CRuntime.malloc((ulong)(sizeof(STSpace) * iMaxNrFaces));
@@ -661,7 +661,7 @@ namespace MikkTSpaceSharp
 					CRuntime.free(pUniSubGroups);
 				if (pTmpMembers != null)
 					CRuntime.free(pTmpMembers);
-				return 0;
+				return false;
 			}
 
 			var iUniqueTspaces = 0;
@@ -710,16 +710,16 @@ namespace MikkTSpaceSharp
 						vOt2.Normalize();
 
 						{
-							int bAny = ((pTriInfos[f].iFlag | pTriInfos[t].iFlag) & 4) != 0 ? 1 : 0;
+							var bAny = ((pTriInfos[f].iFlag | pTriInfos[t].iFlag) & 4) != 0;
 
 							// make sure triangles which belong to the same quad are joined.
-							int bSameOrgFace = iOF_1 == iOF_2 ? 1 : 0;
+							var bSameOrgFace = iOF_1 == iOF_2;
 							float fCosS = (float)SVec3.Dot(vOs, vOs2);
 							float fCosT = (float)SVec3.Dot(vOt, vOt2);
 
-							Debug.Assert(f != t || bSameOrgFace != 0); // sanity check
+							Debug.Assert(f != t || bSameOrgFace); // sanity check
 
-							if ((bAny != 0) || (bSameOrgFace != 0) || ((fCosS > fThresCos) && (fCosT > fThresCos)))
+							if ((bAny) || (bSameOrgFace) || ((fCosS > fThresCos) && (fCosT > fThresCos)))
 								pTmpMembers[iMembers++] = t;
 						}
 					}
@@ -738,20 +738,20 @@ namespace MikkTSpaceSharp
 					}
 
 					// look for an existing match
-					var bFound = 0;
+					var bFound = false;
 					var l = 0;
-					while ((l < iUniqueSubGroups) && (bFound == 0))
+					while ((l < iUniqueSubGroups) && (!bFound))
 					{
 						bFound = CompareSubGroups(&tmp_group, &pUniSubGroups[l]);
-						if (bFound == 0)
+						if (!bFound)
 							++l;
 					}
 
 					// assign tangent space index
-					Debug.Assert(bFound != 0 || l == iUniqueSubGroups);
+					Debug.Assert(bFound || l == iUniqueSubGroups);
 
 					// if no match was found we allocate a new subgroup
-					if (bFound == 0)
+					if (!bFound)
 					{
 						// insert new subgroup
 						int* pIndices = (int*)CRuntime.malloc((ulong)(sizeof(int) * iMembers));
@@ -767,7 +767,7 @@ namespace MikkTSpaceSharp
 							CRuntime.free(pUniSubGroups);
 							CRuntime.free(pTmpMembers);
 							CRuntime.free(pSubGroupTspace);
-							return 0;
+							return false;
 						}
 
 						pUniSubGroups[iUniqueSubGroups].iNrFaces = iMembers;
@@ -784,7 +784,7 @@ namespace MikkTSpaceSharp
 						STSpace* pTS_out = &psTspace[iOffs + iVert];
 
 						Debug.Assert(pTS_out->iCounter < 2);
-						Debug.Assert((((pTriInfos[f].iFlag & 8) != 0) ? 1 : 0) == pGroup->bOrientPreservering);
+						Debug.Assert((((pTriInfos[f].iFlag & 8) != 0)) == pGroup->bOrientPreservering);
 						if (pTS_out->iCounter == 1)
 						{
 							*pTS_out = AvgTSpace(pTS_out, &pSubGroupTspace[l]);
@@ -815,7 +815,7 @@ namespace MikkTSpaceSharp
 			CRuntime.free(pTmpMembers);
 			CRuntime.free(pSubGroupTspace);
 
-			return 1;
+			return true;
 		}
 
 		public static int MakeIndex(int iFace, int iVert)
@@ -893,9 +893,9 @@ namespace MikkTSpaceSharp
 				int iFO_b = pTriInfos[t + 1].iOrgFaceNumber;
 				if (iFO_a == iFO_b) // this is a quad
 				{
-					int bIsDeg_a = (pTriInfos[t].iFlag & 1) != 0 ? 1 : 0;
-					int bIsDeg_b = (pTriInfos[t + 1].iFlag & 1) != 0 ? 1 : 0;
-					if ((bIsDeg_a ^ bIsDeg_b) != 0)
+					var bIsDeg_a = (pTriInfos[t].iFlag & 1) != 0;
+					var bIsDeg_b = (pTriInfos[t + 1].iFlag & 1) != 0;
+					if (bIsDeg_a ^ bIsDeg_b)
 					{
 						pTriInfos[t].iFlag |= 2;
 						pTriInfos[t + 1].iFlag |= 2;
@@ -911,11 +911,11 @@ namespace MikkTSpaceSharp
 			// without reordering the good triangles
 			var iNextGoodTriangleSearchIndex = 1;
 			t = 0;
-			var bStillFindingGoodOnes = 1;
-			while ((t < iNrTrianglesIn) && (bStillFindingGoodOnes != 0))
+			var bStillFindingGoodOnes = true;
+			while ((t < iNrTrianglesIn) && (bStillFindingGoodOnes))
 			{
-				int bIsGood = (pTriInfos[t].iFlag & 1) == 0 ? 1 : 0;
-				if (bIsGood != 0)
+				var bIsGood = (pTriInfos[t].iFlag & 1) == 0;
+				if (bIsGood)
 				{
 					if (iNextGoodTriangleSearchIndex < (t + 2))
 						iNextGoodTriangleSearchIndex = t + 2;
@@ -926,12 +926,12 @@ namespace MikkTSpaceSharp
 					int t1 = 0;
 
 					// search for the first good triangle.
-					int bJustADegenerate = 1;
-					while ((bJustADegenerate != 0) && (iNextGoodTriangleSearchIndex < iTotTris))
+					var bJustADegenerate = true;
+					while ((bJustADegenerate) && (iNextGoodTriangleSearchIndex < iTotTris))
 					{
-						int bIsGood2 = (pTriInfos[iNextGoodTriangleSearchIndex].iFlag & 1) == 0 ? 1 : 0;
-						if (bIsGood2 != 0)
-							bJustADegenerate = 0;
+						var bIsGood2 = (pTriInfos[iNextGoodTriangleSearchIndex].iFlag & 1) == 0;
+						if (bIsGood2)
+							bJustADegenerate = false;
 						else
 							++iNextGoodTriangleSearchIndex;
 					}
@@ -942,7 +942,7 @@ namespace MikkTSpaceSharp
 					Debug.Assert(iNextGoodTriangleSearchIndex > (t + 1));
 
 					// swap triangle t0 and t1
-					if (bJustADegenerate == 0)
+					if (!bJustADegenerate)
 					{
 						int i = 0;
 						for (i = 0; i < 3; i++)
@@ -959,14 +959,14 @@ namespace MikkTSpaceSharp
 						}
 					}
 					else
-						bStillFindingGoodOnes = 0;  // this is not supposed to happen
+						bStillFindingGoodOnes = false;  // this is not supposed to happen
 				}
 
-				if (bStillFindingGoodOnes != 0)
+				if (bStillFindingGoodOnes)
 					++t;
 			}
 
-			Debug.Assert(bStillFindingGoodOnes != 0);  // code will still work.
+			Debug.Assert(bStillFindingGoodOnes);  // code will still work.
 			Debug.Assert(iNrTrianglesIn == t);
 		}
 
@@ -978,26 +978,26 @@ namespace MikkTSpaceSharp
 			{
 				// degenerate triangles on a quad with one good triangle are skipped
 				// here but processed in the next loop
-				int bSkip = (pTriInfos[t].iFlag & 2) != 0 ? 1 : 0;
-				if (bSkip == 0)
+				var bSkip = (pTriInfos[t].iFlag & 2) != 0;
+				if (!bSkip)
 				{
 					for (var i = 0; i < 3; i++)
 					{
 						int index1 = piTriListIn[t * 3 + i];
 
 						// search through the good triangles
-						int bNotFound = 1;
+						var bNotFound = true;
 						int j = 0;
-						while ((bNotFound != 0) && (j < (3 * iNrTrianglesIn)))
+						while ((bNotFound) && (j < (3 * iNrTrianglesIn)))
 						{
 							int index2 = piTriListIn[j];
 							if (index1 == index2)
-								bNotFound = 0;
+								bNotFound = false;
 							else
 								++j;
 						}
 
-						if (bNotFound == 0)
+						if (!bNotFound)
 						{
 							int iTri = j / 3;
 							int iVert = j % 3;
@@ -1023,7 +1023,7 @@ namespace MikkTSpaceSharp
 					SVec3 vDstP = new SVec3();
 					int iOrgF = -1;
 					int j = 0;
-					int bNotFound = 0;
+					var bNotFound = false;
 					byte[] pV = pTriInfos[t].vert_num;
 					int iFlag = (1 << pV[0]) | (1 << pV[1]) | (1 << pV[2]);
 					int iMissingIndex = 0;
@@ -1035,9 +1035,9 @@ namespace MikkTSpaceSharp
 						iMissingIndex = 3;
 					iOrgF = pTriInfos[t].iOrgFaceNumber;
 					vDstP = GetPosition(pContext, MakeIndex(iOrgF, iMissingIndex));
-					bNotFound = 1;
+					bNotFound = true;
 					j = 0;
-					while ((bNotFound != 0) && (j < 3))
+					while ((bNotFound) && (j < 3))
 					{
 						int iVert = pV[j];
 						SVec3 vSrcP = GetPosition(pContext, MakeIndex(iOrgF, iVert));
@@ -1045,7 +1045,7 @@ namespace MikkTSpaceSharp
 						{
 							int iOffs = pTriInfos[t].iTSpacesOffs;
 							psTspace[iOffs + iMissingIndex] = psTspace[iOffs + iVert];
-							bNotFound = 0;
+							bNotFound = false;
 						}
 						else
 						{
@@ -1053,7 +1053,7 @@ namespace MikkTSpaceSharp
 						}
 					}
 
-					Debug.Assert(bNotFound == 0);
+					Debug.Assert(!bNotFound);
 				}
 			}
 		}
@@ -1116,10 +1116,10 @@ namespace MikkTSpaceSharp
 					SVec3 vP = GetPosition(pContext, index);
 					SVec3 vN = GetNormal(pContext, index);
 					SVec3 vT = GetTexCoord(pContext, index);
-					int bNotFound = 1;
+					var bNotFound = true;
 					int l2 = iL_in;
 					int i2rec = -1;
-					while ((l2 < l) && (bNotFound != 0))
+					while ((l2 < l) && (bNotFound))
 					{
 						int i2 = pTmpVert[l2].index;
 						int index2 = piTriList_in_and_out[i2];
@@ -1128,13 +1128,13 @@ namespace MikkTSpaceSharp
 						SVec3 vT2 = GetTexCoord(pContext, index2);
 						i2rec = i2;
 						if ((vP.x == vP2.x) && (vP.y == vP2.y) && (vP.z == vP2.z) && (vN.x == vN2.x) && (vN.y == vN2.y) && (vN.z == vN2.z) && (vT.x == vT2.x) && (vT.y == vT2.y) && (vT.z == vT2.z))
-							bNotFound = 0;
+							bNotFound = false;
 						else
 							++l2;
 					}
 
 					// merge if previously found
-					if (bNotFound == 0)
+					if (!bNotFound)
 						piTriList_in_and_out[i] = piTriList_in_and_out[i2rec];
 				}
 			}
@@ -1147,24 +1147,24 @@ namespace MikkTSpaceSharp
 				// separate (by fSep) all points between iL_in and iR_in in pTmpVert[]
 				while (iL < iR)
 				{
-					int bReadyLeftSwap = 0;
-					int bReadyRightSwap = 0;
-					while ((bReadyLeftSwap == 0) && (iL < iR))
+					var bReadyLeftSwap = false;
+					var bReadyRightSwap = false;
+					while ((!bReadyLeftSwap) && (iL < iR))
 					{
-						bReadyLeftSwap = pTmpVert[iL].vert[channel] >= fSep ? 1 : 0;
-						if (bReadyLeftSwap == 0)
+						bReadyLeftSwap = pTmpVert[iL].vert[channel] >= fSep;
+						if (!bReadyLeftSwap)
 							++iL;
 					}
 
-					while ((bReadyRightSwap == 0) && (iL < iR))
+					while ((!bReadyRightSwap) && (iL < iR))
 					{
-						bReadyRightSwap = pTmpVert[iR].vert[channel] < fSep ? 1 : 0;
-						if (bReadyRightSwap == 0)
+						bReadyRightSwap = pTmpVert[iR].vert[channel] < fSep;
+						if (!bReadyRightSwap)
 							--iR;
 					}
 
-					Debug.Assert((iL < iR) || !(bReadyLeftSwap != 0 && bReadyRightSwap != 0));
-					if ((bReadyLeftSwap != 0) && (bReadyRightSwap != 0))
+					Debug.Assert((iL < iR) || !(bReadyLeftSwap && bReadyRightSwap));
+					if ((bReadyLeftSwap) && (bReadyRightSwap))
 					{
 						STmpVert sTmp = pTmpVert[iL];
 						Debug.Assert(iL < iR);
@@ -1179,8 +1179,8 @@ namespace MikkTSpaceSharp
 				Debug.Assert(iL == (iR + 1) || (iL == iR));
 				if (iL == iR)
 				{
-					int bReadyRightSwap = pTmpVert[iR].vert[channel] < fSep ? 1 : 0;
-					if (bReadyRightSwap != 0)
+					var bReadyRightSwap = pTmpVert[iR].vert[channel] < fSep;
+					if (bReadyRightSwap)
 						++iL;
 					else
 						--iR;
@@ -1204,10 +1204,10 @@ namespace MikkTSpaceSharp
 				SVec3 vP = GetPosition(pContext, index);
 				SVec3 vN = GetNormal(pContext, index);
 				SVec3 vT = GetTexCoord(pContext, index);
-				int bNotFound = 1;
+				var bNotFound = true;
 				int e2 = 0;
 				int i2rec = -1;
-				while ((e2 < e) && (bNotFound != 0))
+				while ((e2 < e) && (bNotFound))
 				{
 					int i2 = pTable[e2];
 					int index2 = piTriList_in_and_out[i2];
@@ -1216,13 +1216,13 @@ namespace MikkTSpaceSharp
 					SVec3 vT2 = GetTexCoord(pContext, index2);
 					i2rec = i2;
 					if (vP == vP2 && vN == vN2 && vT == vT2)
-						bNotFound = 0;
+						bNotFound = false;
 					else
 						++e2;
 				}
 
 				// merge if previously found
-				if (bNotFound == 0)
+				if (!bNotFound)
 					piTriList_in_and_out[i] = piTriList_in_and_out[i2rec];
 			}
 		}
@@ -1239,29 +1239,29 @@ namespace MikkTSpaceSharp
 					SVec3 vP = GetPosition(pContext, index);
 					SVec3 vN = GetNormal(pContext, index);
 					SVec3 vT = GetTexCoord(pContext, index);
-					int bFound = 0;
+					var bFound = false;
 					int t2 = 0;
 					int index2rec = -1;
-					while ((bFound == 0) && (t2 <= t))
+					while ((!bFound) && (t2 <= t))
 					{
 						int j = 0;
-						while ((bFound == 0) && (j < 3))
+						while ((!bFound) && (j < 3))
 						{
 							int index2 = piTriList_in_and_out[t2 * 3 + j];
 							SVec3 vP2 = GetPosition(pContext, index2);
 							SVec3 vN2 = GetNormal(pContext, index2);
 							SVec3 vT2 = GetTexCoord(pContext, index2);
 							if (vP == vP2 && vN == vN2 && vT == vT2)
-								bFound = 1;
+								bFound = true;
 							else
 								++j;
 						}
 
-						if (bFound == 0)
+						if (!bFound)
 							++t2;
 					}
 
-					Debug.Assert(bFound != 0);
+					Debug.Assert(bFound);
 
 					// if we found our own
 					// TODO: Figure out whether index2rec and iNumUniqueVerts are necessary
@@ -1331,34 +1331,34 @@ namespace MikkTSpaceSharp
 				int i0 = pEdges[i].i.i0;
 				int i1 = pEdges[i].i.i1;
 				int f2 = pEdges[i].i.f;
-				int bUnassigned_A = 0;
+				var bUnassigned_A = false;
 				int i0_A = 0;
 				int i1_A = 0;
 				int edgenum_A = 0;
 				int edgenum_B = 0;
 				GetEdge(&i0_A, &i1_A, &edgenum_A, &piTriListIn[f2 * 3], i0, i1);
-				bUnassigned_A = pTriInfos[f2].FaceNeighbors[edgenum_A] == (-1) ? 1 : 0;
-				if (bUnassigned_A != 0)
+				bUnassigned_A = pTriInfos[f2].FaceNeighbors[edgenum_A] == (-1);
+				if (bUnassigned_A)
 				{
 					// get true index ordering
 					int j = i + 1;
 					int t = 0;
-					int bNotFound = 1;
-					while ((j < iEntries) && (i0 == pEdges[j].i.i0) && (i1 == pEdges[j].i.i1) && (bNotFound != 0))
+					var bNotFound = true;
+					while ((j < iEntries) && (i0 == pEdges[j].i.i0) && (i1 == pEdges[j].i.i1) && (bNotFound))
 					{
-						int bUnassigned_B = 0;
+						var bUnassigned_B = false;
 						int i0_B = 0;
 						int i1_B = 0;
 						t = pEdges[j].i.f;
 						GetEdge(&i1_B, &i0_B, &edgenum_B, &piTriListIn[t * 3], pEdges[j].i.i0, pEdges[j].i.i1);
-						bUnassigned_B = pTriInfos[t].FaceNeighbors[edgenum_B] == (-1) ? 1 : 0;
-						if ((i0_A == i0_B) && (i1_A == i1_B) && (bUnassigned_B != 0))
-							bNotFound = 0;
+						bUnassigned_B = pTriInfos[t].FaceNeighbors[edgenum_B] == (-1);
+						if ((i0_A == i0_B) && (i1_A == i1_B) && (bUnassigned_B))
+							bNotFound = false;
 						else
 							++j;
 					}
 
-					if (bNotFound == 0)
+					if (!bNotFound)
 					{
 						int t2 = pEdges[j].i.f;
 						pTriInfos[f2].FaceNeighbors[edgenum_A] = t2;
@@ -1381,32 +1381,32 @@ namespace MikkTSpaceSharp
 						int i1_A = piTriListIn[f * 3 + (i < 2 ? (i + 1) : 0)];
 
 						// search for a neighbor
-						int bFound = 0;
+						var bFound = false;
 						int t = 0;
 						int j = 0;
-						while ((bFound == 0) && (t < iNrTrianglesIn))
+						while ((!bFound) && (t < iNrTrianglesIn))
 						{
 							if (t != f)
 							{
 								j = 0;
-								while ((bFound == 0) && (j < 3))
+								while ((!bFound) && (j < 3))
 								{
 									// in rev order
 									int i1_B = piTriListIn[t * 3 + j];
 									int i0_B = piTriListIn[t * 3 + (j < 2 ? (j + 1) : 0)];
 									if ((i0_A == i0_B) && (i1_A == i1_B))
-										bFound = 1;
+										bFound = true;
 									else
 										++j;
 								}
 							}
 
-							if (bFound == 0)
+							if (!bFound)
 								++t;
 						}
 
 						// assign neighbors
-						if (bFound != 0)
+						if (bFound)
 						{
 							pTriInfos[f].FaceNeighbors[i] = t;
 							pTriInfos[t].FaceNeighbors[j] = f;
@@ -1435,7 +1435,7 @@ namespace MikkTSpaceSharp
 			return (float)(fSignedAreaSTx2 < 0 ? (-fSignedAreaSTx2) : fSignedAreaSTx2);
 		}
 
-		public static int AssignRecur(int* piTriListIn, STriInfo[] psTriInfos, int iMyTriIndex, SGroup* pGroup)
+		public static bool AssignRecur(int* piTriListIn, STriInfo[] psTriInfos, int iMyTriIndex, SGroup* pGroup)
 		{
 			STriInfo pMyTriInfo = psTriInfos[iMyTriIndex];
 
@@ -1453,9 +1453,9 @@ namespace MikkTSpaceSharp
 
 			// early out
 			if (pMyTriInfo.AssignedGroup[i] == pGroup)
-				return 1;
+				return true;
 			else if (pMyTriInfo.AssignedGroup[i] != null)
-				return 0;
+				return false;
 			if ((pMyTriInfo.iFlag & 4) != 0)
 			{
 				// first to group with a group-with-anything triangle
@@ -1464,14 +1464,14 @@ namespace MikkTSpaceSharp
 				if ((pMyTriInfo.AssignedGroup[0] == null) && (pMyTriInfo.AssignedGroup[1] == null) && (pMyTriInfo.AssignedGroup[2] == null))
 				{
 					pMyTriInfo.iFlag &= ~8;
-					pMyTriInfo.iFlag |= pGroup->bOrientPreservering != 0 ? 8 : 0;
+					pMyTriInfo.iFlag |= pGroup->bOrientPreservering ? 8 : 0;
 				}
 			}
 
 			{
-				int bOrient = (pMyTriInfo.iFlag & 8) != 0 ? 1 : 0;
+				var bOrient = (pMyTriInfo.iFlag & 8) != 0;
 				if (bOrient != pGroup->bOrientPreservering)
-					return 0;
+					return false;
 			}
 
 			AddTriToGroup(pGroup, iMyTriIndex);
@@ -1485,7 +1485,7 @@ namespace MikkTSpaceSharp
 					AssignRecur(piTriListIn, psTriInfos, neigh_indexR, pGroup);
 			}
 
-			return 1;
+			return true;
 		}
 
 		public static void AddTriToGroup(SGroup* pGroup, int iTriIndex)
@@ -1494,16 +1494,16 @@ namespace MikkTSpaceSharp
 			++pGroup->iNrFaces;
 		}
 
-		public static int CompareSubGroups(SSubGroup* pg1, SSubGroup* pg2)
+		public static bool CompareSubGroups(SSubGroup* pg1, SSubGroup* pg2)
 		{
-			int bStillSame = 1;
+			var bStillSame = true;
 			int i = 0;
 			if (pg1->iNrFaces != pg2->iNrFaces)
-				return 0;
-			while ((i < pg1->iNrFaces) && (bStillSame != 0))
+				return false;
+			while ((i < pg1->iNrFaces) && (bStillSame))
 			{
-				bStillSame = pg1->pTriMembers[i] == pg2->pTriMembers[i] ? 1 : 0;
-				if (bStillSame != 0)
+				bStillSame = pg1->pTriMembers[i] == pg2->pTriMembers[i];
+				if (bStillSame)
 					++i;
 			}
 

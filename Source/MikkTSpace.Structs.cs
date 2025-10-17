@@ -13,7 +13,7 @@ namespace MikkTSpaceSharp
 		public delegate SVec3 getPositionDelegate(int face, int vertex);
 		public delegate SVec2 getTexCoordDelegate(int face, int vertex);
 		public delegate void setTSpaceBasicDelegate(SVec3 tangent, float orient, int face, int vertex);
-		public delegate void setTSpaceDelegate(SVec3 tangent, SVec3 bitangent, float magS, float magT, int orient, int face, int vertex);
+		public delegate void setTSpaceDelegate(SVec3 tangent, SVec3 bitangent, float magS, float magT, bool orient, int face, int vertex);
 
 		public class SMikkTSpaceContext
 		{
@@ -37,7 +37,7 @@ namespace MikkTSpaceSharp
 			public int iNrFaces;
 			public int* pFaceIndices;
 			public int iVertexRepresentitive;
-			public int bOrientPreservering;
+			public bool bOrientPreservering;
 		}
 
 		public unsafe class STriInfo
@@ -61,7 +61,7 @@ namespace MikkTSpaceSharp
 			public SVec3 vOt;
 			public float fMagT;
 			public int iCounter;
-			public int bOrient;
+			public bool bOrient;
 		}
 
 		public unsafe struct STmpVert
