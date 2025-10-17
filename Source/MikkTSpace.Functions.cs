@@ -316,13 +316,10 @@ namespace MikkTSpaceSharp
 		public static void GenerateSharedVerticesIndexList(int* piTriList_in_and_out, SMikkTSpaceContext pContext, int iNrTrianglesIn)
 		{
 			// Generate bounding box
-			int* piHashTable = null; int* piHashCount = null; int* piHashOffsets = null; int* piHashCount2 = null;
-			STmpVert* pTmpVert = null;
-			int i = 0; int iChannel = 0; int k = 0; int e = 0;
-			int iMaxCount = 0;
-			SVec3 vMin = GetPosition(pContext, 0); SVec3 vMax = vMin; SVec3 vDim = new SVec3();
-			float fMin = 0; float fMax = 0;
-			for (i = 1; i < (iNrTrianglesIn * 3); i++)
+			SVec3 vMin = GetPosition(pContext, 0);
+			SVec3 vMax = vMin;
+			SVec3 vDim = new SVec3();
+			for (var i = 1; i < (iNrTrianglesIn * 3); i++)
 			{
 				int index = piTriList_in_and_out[i];
 				SVec3 vP = GetPosition(pContext, index);
@@ -341,9 +338,9 @@ namespace MikkTSpaceSharp
 			}
 
 			vDim = vMax - vMin;
-			iChannel = 0;
-			fMin = vMin.x;
-			fMax = vMax.x;
+			var iChannel = 0;
+			var fMin = vMin.x;
+			var fMax = vMax.x;
 			if ((vDim.y > vDim.x) && (vDim.y > vDim.z))
 			{
 				iChannel = 1;
@@ -358,10 +355,10 @@ namespace MikkTSpaceSharp
 			}
 
 			// make allocations
-			piHashTable = (int*)CRuntime.malloc((ulong)(sizeof(int) * iNrTrianglesIn * 3));
-			piHashCount = (int*)CRuntime.malloc((ulong)(sizeof(int) * g_iCells));
-			piHashOffsets = (int*)CRuntime.malloc((ulong)(sizeof(int) * g_iCells));
-			piHashCount2 = (int*)CRuntime.malloc((ulong)(sizeof(int) * g_iCells));
+			var piHashTable = (int*)CRuntime.malloc((ulong)(sizeof(int) * iNrTrianglesIn * 3));
+			var piHashCount = (int*)CRuntime.malloc((ulong)(sizeof(int) * g_iCells));
+			var piHashOffsets = (int*)CRuntime.malloc((ulong)(sizeof(int) * g_iCells));
+			var piHashCount2 = (int*)CRuntime.malloc((ulong)(sizeof(int) * g_iCells));
 			if ((piHashTable == null) || (piHashCount == null) || (piHashOffsets == null) || (piHashCount2 == null))
 			{
 				if (piHashTable != null)
@@ -380,7 +377,7 @@ namespace MikkTSpaceSharp
 			CRuntime.memset(piHashCount2, 0, (ulong)(sizeof(int) * g_iCells));
 
 			// count amount of elements in each cell unit
-			for (i = 0; i < (iNrTrianglesIn * 3); i++)
+			for (var i = 0; i < (iNrTrianglesIn * 3); i++)
 			{
 				int index = piTriList_in_and_out[i];
 				SVec3 vP = GetPosition(pContext, index);
@@ -391,13 +388,13 @@ namespace MikkTSpaceSharp
 
 			// evaluate start index of each cell.
 			piHashOffsets[0] = 0;
-			for (k = 1; k < g_iCells; k++)
+			for (var k = 1; k < g_iCells; k++)
 			{
 				piHashOffsets[k] = piHashOffsets[k - 1] + piHashCount[k - 1];
 			}
 
 			// insert vertices
-			for (i = 0; i < (iNrTrianglesIn * 3); i++)
+			for (var i = 0; i < (iNrTrianglesIn * 3); i++)
 			{
 				int index = piTriList_in_and_out[i];
 				SVec3 vP = GetPosition(pContext, index);
@@ -409,7 +406,7 @@ namespace MikkTSpaceSharp
 				++piHashCount2[iCell];
 			}
 
-			for (k = 0; k < g_iCells; k++)
+			for (var k = 0; k < g_iCells; k++)
 			{
 				Debug.Assert(piHashCount2[k] == piHashCount[k]);  // verify the count
 			}
@@ -417,17 +414,17 @@ namespace MikkTSpaceSharp
 			CRuntime.free(piHashCount2);
 
 			// find maximum amount of entries in any hash entry
-			iMaxCount = piHashCount[0];
-			for (k = 1; k < g_iCells; k++)
+			var iMaxCount = piHashCount[0];
+			for (var k = 1; k < g_iCells; k++)
 			{
 				if (iMaxCount < piHashCount[k])
 					iMaxCount = piHashCount[k];
 			}
 
-			pTmpVert = (STmpVert*)CRuntime.malloc((ulong)(sizeof(STmpVert) * iMaxCount));
+			var pTmpVert = (STmpVert*)CRuntime.malloc((ulong)(sizeof(STmpVert) * iMaxCount));
 
 			// complete the merge
-			for (k = 0; k < g_iCells; k++)
+			for (var k = 0; k < g_iCells; k++)
 			{
 				// extract table of cell k and amount of entries in it
 				int* pTable = &piHashTable[piHashOffsets[k]];
@@ -436,7 +433,7 @@ namespace MikkTSpaceSharp
 					continue;
 				if (pTmpVert != null)
 				{
-					for (e = 0; e < iEntries; e++)
+					for (var e = 0; e < iEntries; e++)
 					{
 						int j = pTable[e];
 						SVec3 vP = GetPosition(pContext, piTriList_in_and_out[j]);
@@ -464,12 +461,10 @@ namespace MikkTSpaceSharp
 
 		public static void InitTriInfo(STriInfo[] pTriInfos, int* piTriListIn, SMikkTSpaceContext pContext, int iNrTrianglesIn)
 		{
-			int f = 0; int i = 0; int t = 0;
-
 			// generate neighbor info list
-			for (f = 0; f < iNrTrianglesIn; f++)
+			for (var f = 0; f < iNrTrianglesIn; f++)
 			{
-				for (i = 0; i < 3; i++)
+				for (var i = 0; i < 3; i++)
 				{
 					pTriInfos[f].FaceNeighbors[i] = -1;
 					pTriInfos[f].AssignedGroup[i] = null;
@@ -488,7 +483,7 @@ namespace MikkTSpaceSharp
 			}
 
 			// evaluate first order derivatives
-			for (f = 0; f < iNrTrianglesIn; f++)
+			for (var f = 0; f < iNrTrianglesIn; f++)
 			{
 				// initial values
 				SVec3 v1 = GetPosition(pContext, piTriListIn[f * 3 + 0]);
@@ -531,6 +526,7 @@ namespace MikkTSpaceSharp
 			}
 
 			// force otherwise healthy quads to a fixed orientation
+			var t = 0;
 			while (t < (iNrTrianglesIn - 1))
 			{
 				int iFO_a = pTriInfos[t].iOrgFaceNumber;
@@ -589,10 +585,10 @@ namespace MikkTSpaceSharp
 		{
 			int iNrMaxGroups = iNrTrianglesIn * 3;
 			int iNrActiveGroups = 0;
-			int iOffset = 0; int f = 0; int i = 0;
-			for (f = 0; f < iNrTrianglesIn; f++)
+			int iOffset = 0;
+			for (var f = 0; f < iNrTrianglesIn; f++)
 			{
-				for (i = 0; i < 3; i++)
+				for (var i = 0; i < 3; i++)
 				{
 					// if not assigned to a group
 					if (((pTriInfos[f].iFlag & 4) == 0) && (pTriInfos[f].AssignedGroup[i] == null))
@@ -643,11 +639,8 @@ namespace MikkTSpaceSharp
 
 		public static int GenerateTSpaces(STSpace* psTspace, STriInfo[] pTriInfos, SGroup* pGroups, int iNrActiveGroups, int* piTriListIn, float fThresCos, SMikkTSpaceContext pContext)
 		{
-			STSpace* pSubGroupTspace = null;
-			SSubGroup* pUniSubGroups = null;
-			int* pTmpMembers = null;
-			int iMaxNrFaces = 0; int iUniqueTspaces = 0; int g = 0; int i = 0;
-			for (g = 0; g < iNrActiveGroups; g++)
+			int iMaxNrFaces = 0;
+			for (var g = 0; g < iNrActiveGroups; g++)
 			{
 				if (iMaxNrFaces < pGroups[g].iNrFaces)
 					iMaxNrFaces = pGroups[g].iNrFaces;
@@ -657,9 +650,9 @@ namespace MikkTSpaceSharp
 				return 1;
 
 			// make initial allocations
-			pSubGroupTspace = (STSpace*)CRuntime.malloc((ulong)(sizeof(STSpace) * iMaxNrFaces));
-			pUniSubGroups = (SSubGroup*)CRuntime.malloc((ulong)(sizeof(SSubGroup) * iMaxNrFaces));
-			pTmpMembers = (int*)CRuntime.malloc((ulong)(sizeof(int) * iMaxNrFaces));
+			var pSubGroupTspace = (STSpace*)CRuntime.malloc((ulong)(sizeof(STSpace) * iMaxNrFaces));
+			var pUniSubGroups = (SSubGroup*)CRuntime.malloc((ulong)(sizeof(SSubGroup) * iMaxNrFaces));
+			var pTmpMembers = (int*)CRuntime.malloc((ulong)(sizeof(int) * iMaxNrFaces));
 			if ((pSubGroupTspace == null) || (pUniSubGroups == null) || (pTmpMembers == null))
 			{
 				if (pSubGroupTspace != null)
@@ -671,26 +664,16 @@ namespace MikkTSpaceSharp
 				return 0;
 			}
 
-			iUniqueTspaces = 0;
-			for (g = 0; g < iNrActiveGroups; g++)
+			var iUniqueTspaces = 0;
+			for (var g = 0; g < iNrActiveGroups; g++)
 			{
 				SGroup* pGroup = &pGroups[g];
 				int iUniqueSubGroups = 0;
 				int s = 0;
-				for (i = 0; i < pGroup->iNrFaces; i++)  // triangles
+				for (var i = 0; i < pGroup->iNrFaces; i++)  // triangles
 				{
 					int f = pGroup->pFaceIndices[i];    // triangle number
 					int index = -1;
-					int iVertIndex = -1;
-					int iOF_1 = -1;
-					int iMembers = 0;
-					int j = 0;
-					int l = 0;
-					SSubGroup tmp_group = new SSubGroup();
-					int bFound = 0;
-					SVec3 n = new SVec3();
-					SVec3 vOs = new SVec3();
-					SVec3 vOt = new SVec3();
 					if (pTriInfos[f].AssignedGroup[0] == pGroup)
 						index = 0;
 					else if (pTriInfos[f].AssignedGroup[1] == pGroup)
@@ -699,22 +682,22 @@ namespace MikkTSpaceSharp
 						index = 2;
 					Debug.Assert(index >= 0 && index < 3);
 
-					iVertIndex = piTriListIn[f * 3 + index];
+					var iVertIndex = piTriListIn[f * 3 + index];
 
 					// is normalized already
-					n = GetNormal(pContext, iVertIndex);
+					var n = GetNormal(pContext, iVertIndex);
 
 					// project
-					vOs = pTriInfos[f].vOs - SVec3.Dot(n, pTriInfos[f].vOs) * n;
+					var vOs = pTriInfos[f].vOs - SVec3.Dot(n, pTriInfos[f].vOs) * n;
 					vOs.Normalize();
 
-					vOt = pTriInfos[f].vOt - SVec3.Dot(n, pTriInfos[f].vOt) * n;
+					var vOt = pTriInfos[f].vOt - SVec3.Dot(n, pTriInfos[f].vOt) * n;
 					vOt.Normalize();
 
 					// original face number
-					iOF_1 = pTriInfos[f].iOrgFaceNumber;
-					iMembers = 0;
-					for (j = 0; j < pGroup->iNrFaces; j++)
+					var iOF_1 = pTriInfos[f].iOrgFaceNumber;
+					var iMembers = 0;
+					for (var j = 0; j < pGroup->iNrFaces; j++)
 					{
 						int t = pGroup->pFaceIndices[j];
 						int iOF_2 = pTriInfos[t].iOrgFaceNumber;
@@ -742,8 +725,12 @@ namespace MikkTSpaceSharp
 					}
 
 					// sort pTmpMembers
-					tmp_group.iNrFaces = iMembers;
-					tmp_group.pTriMembers = pTmpMembers;
+					var tmp_group = new SSubGroup
+					{
+						iNrFaces = iMembers,
+						pTriMembers = pTmpMembers
+					};
+
 					if (iMembers > 1)
 					{
 						uint uSeed = 39871946;  // could replace with a random seed?
@@ -751,8 +738,8 @@ namespace MikkTSpaceSharp
 					}
 
 					// look for an existing match
-					bFound = 0;
-					l = 0;
+					var bFound = 0;
+					var l = 0;
 					while ((l < iUniqueSubGroups) && (bFound == 0))
 					{
 						bFound = CompareSubGroups(&tmp_group, &pUniSubGroups[l]);
@@ -898,9 +885,6 @@ namespace MikkTSpaceSharp
 
 		public static void DegenPrologue(STriInfo[] pTriInfos, int* piTriList_out, int iNrTrianglesIn, int iTotTris)
 		{
-			int iNextGoodTriangleSearchIndex = -1;
-			int bStillFindingGoodOnes = 0;
-
 			// locate quads with only one good triangle
 			int t = 0;
 			while (t < (iTotTris - 1))
@@ -925,9 +909,9 @@ namespace MikkTSpaceSharp
 
 			// reorder list so all degen triangles are moved to the back
 			// without reordering the good triangles
-			iNextGoodTriangleSearchIndex = 1;
+			var iNextGoodTriangleSearchIndex = 1;
 			t = 0;
-			bStillFindingGoodOnes = 1;
+			var bStillFindingGoodOnes = 1;
 			while ((t < iNrTrianglesIn) && (bStillFindingGoodOnes != 0))
 			{
 				int bIsGood = (pTriInfos[t].iFlag & 1) == 0 ? 1 : 0;
@@ -988,18 +972,16 @@ namespace MikkTSpaceSharp
 
 		public static void DegenEpilogue(STSpace* psTspace, STriInfo[] pTriInfos, int* piTriListIn, SMikkTSpaceContext pContext, int iNrTrianglesIn, int iTotTris)
 		{
-			int t = 0; int i = 0;
-
 			// deal with degenerate triangles
 			// punishment for degenerate triangles is O(N^2)
-			for (t = iNrTrianglesIn; t < iTotTris; t++)
+			for (var t = iNrTrianglesIn; t < iTotTris; t++)
 			{
 				// degenerate triangles on a quad with one good triangle are skipped
 				// here but processed in the next loop
 				int bSkip = (pTriInfos[t].iFlag & 2) != 0 ? 1 : 0;
 				if (bSkip == 0)
 				{
-					for (i = 0; i < 3; i++)
+					for (var i = 0; i < 3; i++)
 					{
 						int index1 = piTriListIn[t * 3 + i];
 
@@ -1032,7 +1014,7 @@ namespace MikkTSpaceSharp
 			}
 
 			// deal with degenerate quads with one good triangle
-			for (t = 0; t < iNrTrianglesIn; t++)
+			for (var t = 0; t < iNrTrianglesIn; t++)
 			{
 				// this triangle belongs to a quad where the
 				// other triangle is degenerate
@@ -1089,18 +1071,17 @@ namespace MikkTSpaceSharp
 		public static void MergeVertsFast(int* piTriList_in_and_out, STmpVert* pTmpVert, SMikkTSpaceContext pContext, int iL_in, int iR_in)
 		{
 			// make bbox
-			int c = 0; int l = 0; int channel = 0;
-			float* fvMin = stackalloc float[3]; float* fvMax = stackalloc float[3];
-			float dx = 0; float dy = 0; float dz = 0; float fSep = 0;
-			for (c = 0; c < 3; c++)
+			float* fvMin = stackalloc float[3];
+			float* fvMax = stackalloc float[3];
+			for (var c = 0; c < 3; c++)
 			{
 				fvMin[c] = (float)pTmpVert[iL_in].vert[c];
 				fvMax[c] = (float)fvMin[c];
 			}
 
-			for (l = iL_in + 1; l <= iR_in; l++)
+			for (var l = iL_in + 1; l <= iR_in; l++)
 			{
-				for (c = 0; c < 3; c++)
+				for (var c = 0; c < 3; c++)
 				{
 					if (fvMin[c] > pTmpVert[l].vert[c])
 						fvMin[c] = (float)pTmpVert[l].vert[c];
@@ -1109,15 +1090,15 @@ namespace MikkTSpaceSharp
 				}
 			}
 
-			dx = (float)(fvMax[0] - fvMin[0]);
-			dy = (float)(fvMax[1] - fvMin[1]);
-			dz = (float)(fvMax[2] - fvMin[2]);
-			channel = 0;
+			var dx = (float)(fvMax[0] - fvMin[0]);
+			var dy = (float)(fvMax[1] - fvMin[1]);
+			var dz = (float)(fvMax[2] - fvMin[2]);
+			var channel = 0;
 			if ((dy > dx) && (dy > dz))
 				channel = 1;
 			else if (dz > dx)
 				channel = 2;
-			fSep = (float)(0.5 * (fvMax[channel] + fvMin[channel]));
+			var fSep = (float)(0.5 * (fvMax[channel] + fvMin[channel]));
 
 			// stop if all vertices are NaNs
 			if (float.IsInfinity(fSep) || float.IsNaN(fSep))
@@ -1128,7 +1109,7 @@ namespace MikkTSpaceSharp
 			if ((fSep >= fvMax[channel]) || (fSep <= fvMin[channel]))
 			{
 				// complete the weld
-				for (l = iL_in; l <= iR_in; l++)
+				for (var l = iL_in; l <= iR_in; l++)
 				{
 					int i = pTmpVert[l].index;
 					int index = piTriList_in_and_out[i];
@@ -1216,8 +1197,7 @@ namespace MikkTSpaceSharp
 		public static void MergeVertsSlow(int* piTriList_in_and_out, SMikkTSpaceContext pContext, int* pTable, int iEntries)
 		{
 			// this can be optimized further using a tree structure or more hashing.
-			int e = 0;
-			for (e = 0; e < iEntries; e++)
+			for (var e = 0; e < iEntries; e++)
 			{
 				int i = pTable[e];
 				int index = piTriList_in_and_out[i];
@@ -1249,10 +1229,10 @@ namespace MikkTSpaceSharp
 
 		public static void GenerateSharedVerticesIndexListSlow(int* piTriList_in_and_out, SMikkTSpaceContext pContext, int iNrTrianglesIn)
 		{
-			int iNumUniqueVerts = 0; int t = 0; int i = 0;
-			for (t = 0; t < iNrTrianglesIn; t++)
+			int iNumUniqueVerts = 0;
+			for (var t = 0; t < iNrTrianglesIn; t++)
 			{
-				for (i = 0; i < 3; i++)
+				for (var i = 0; i < 3; i++)
 				{
 					int offs = t * 3 + i;
 					int index = piTriList_in_and_out[offs];
@@ -1284,7 +1264,7 @@ namespace MikkTSpaceSharp
 					Debug.Assert(bFound != 0);
 
 					// if we found our own
-					// TODO: Figure out where index2rec is necessary
+					// TODO: Figure out whether index2rec and iNumUniqueVerts are necessary
 					if (index2rec == index)
 					{
 						++iNumUniqueVerts;
@@ -1299,10 +1279,9 @@ namespace MikkTSpaceSharp
 		{
 			// build array of edges
 			uint uSeed = 39871946;
-			int iEntries = 0; int iCurStartIndex = -1; int f = 0; int i = 0;
-			for (f = 0; f < iNrTrianglesIn; f++)
+			for (var f = 0; f < iNrTrianglesIn; f++)
 			{
-				for (i = 0; i < 3; i++)
+				for (var i = 0; i < 3; i++)
 				{
 					int i0 = piTriListIn[f * 3 + i];
 					int i1 = piTriListIn[f * 3 + (i < 2 ? (i + 1) : 0)];
@@ -1318,9 +1297,9 @@ namespace MikkTSpaceSharp
 			// sub sort over i1, should be fast.
 			// could replace this with a 64 bit int sort over (i0,i1)
 			// with i0 as msb in the quicksort call above.
-			iEntries = iNrTrianglesIn * 3;
-			iCurStartIndex = 0;
-			for (i = 1; i < iEntries; i++)
+			var iEntries = iNrTrianglesIn * 3;
+			var iCurStartIndex = 0;
+			for (var i = 1; i < iEntries; i++)
 			{
 				if (pEdges[iCurStartIndex].i.i0 != pEdges[i].i.i0)
 				{
@@ -1335,7 +1314,7 @@ namespace MikkTSpaceSharp
 			// this step is to remain compliant with BuildNeighborsSlow() when
 			// more than 2 triangles use the same edge (such as a butterfly topology).
 			iCurStartIndex = 0;
-			for (i = 1; i < iEntries; i++)
+			for (var i = 1; i < iEntries; i++)
 			{
 				if ((pEdges[iCurStartIndex].i.i0 != pEdges[i].i.i0) || (pEdges[iCurStartIndex].i.i1 != pEdges[i].i.i1))
 				{
@@ -1347,7 +1326,7 @@ namespace MikkTSpaceSharp
 			}
 
 			// pair up, adjacent triangles
-			for (i = 0; i < iEntries; i++)
+			for (var i = 0; i < iEntries; i++)
 			{
 				int i0 = pEdges[i].i.i0;
 				int i1 = pEdges[i].i.i1;
@@ -1391,10 +1370,9 @@ namespace MikkTSpaceSharp
 
 		public static void BuildNeighborsSlow(STriInfo[] pTriInfos, int* piTriListIn, int iNrTrianglesIn)
 		{
-			int f = 0; int i = 0;
-			for (f = 0; f < iNrTrianglesIn; f++)
+			for (var f = 0; f < iNrTrianglesIn; f++)
 			{
-				for (i = 0; i < 3; i++)
+				for (var i = 0; i < 3; i++)
 				{
 					// if unassigned
 					if (pTriInfos[f].FaceNeighbors[i] == (-1))
@@ -1579,9 +1557,8 @@ namespace MikkTSpaceSharp
 
 		public static STSpace EvalTspace(int* face_indices, int iFaces, int* piTriListIn, STriInfo[] pTriInfos, SMikkTSpaceContext pContext, int iVertexRepresentitive)
 		{
-			STSpace res = new STSpace();
 			float fAngleSum = 0;
-			int face = 0;
+			STSpace res = new STSpace();
 			res.vOs.x = 0;
 			res.vOs.y = 0;
 			res.vOs.z = 0;
@@ -1590,30 +1567,14 @@ namespace MikkTSpaceSharp
 			res.vOt.z = 0;
 			res.fMagS = 0;
 			res.fMagT = 0;
-			for (face = 0; face < iFaces; face++)
+			for (var face = 0; face < iFaces; face++)
 			{
 				int f = face_indices[face];
 
 				// only valid triangles get to add their contribution
 				if ((pTriInfos[f].iFlag & 4) == 0)
 				{
-					SVec3 n = new SVec3();
-					SVec3 vOs = new SVec3();
-					SVec3 vOt = new SVec3();
-					SVec3 p0 = new SVec3();
-					SVec3 p1 = new SVec3();
-					SVec3 p2 = new SVec3();
-					SVec3 v1 = new SVec3();
-					SVec3 v2 = new SVec3();
-					float fCos = 0;
-					float fAngle = 0;
-					float fMagS = 0;
-					float fMagT = 0;
 					int i = -1;
-					int index = -1;
-					int i0 = -1;
-					int i1 = -1;
-					int i2 = -1;
 					if (piTriListIn[3 * f + 0] == iVertexRepresentitive)
 						i = 0;
 					else if (piTriListIn[3 * f + 1] == iVertexRepresentitive)
@@ -1624,22 +1585,22 @@ namespace MikkTSpaceSharp
 					Debug.Assert(i >= 0 && i < 3);
 
 					// project
-					index = piTriListIn[3 * f + i];
-					n = GetNormal(pContext, index);
-					vOs = pTriInfos[f].vOs - SVec3.Dot(n, pTriInfos[f].vOs) * n;
+					var index = piTriListIn[3 * f + i];
+					var n = GetNormal(pContext, index);
+					var vOs = pTriInfos[f].vOs - SVec3.Dot(n, pTriInfos[f].vOs) * n;
 					vOs.Normalize();
 
-					vOt = pTriInfos[f].vOt - SVec3.Dot(n, pTriInfos[f].vOt) * n;
+					var vOt = pTriInfos[f].vOt - SVec3.Dot(n, pTriInfos[f].vOt) * n;
 					vOt.Normalize();
 
-					i2 = piTriListIn[3 * f + (i < 2 ? (i + 1) : 0)];
-					i1 = piTriListIn[3 * f + i];
-					i0 = piTriListIn[3 * f + (i > 0 ? (i - 1) : 2)];
-					p0 = GetPosition(pContext, i0);
-					p1 = GetPosition(pContext, i1);
-					p2 = GetPosition(pContext, i2);
-					v1 = p0 - p1;
-					v2 = p2 - p1;
+					var i2 = piTriListIn[3 * f + (i < 2 ? (i + 1) : 0)];
+					var i1 = piTriListIn[3 * f + i];
+					var i0 = piTriListIn[3 * f + (i > 0 ? (i - 1) : 2)];
+					var p0 = GetPosition(pContext, i0);
+					var p1 = GetPosition(pContext, i1);
+					var p2 = GetPosition(pContext, i2);
+					var v1 = p0 - p1;
+					var v2 = p2 - p1;
 
 					// project
 					v1 = v1 - SVec3.Dot(n, v1) * n;
@@ -1649,11 +1610,11 @@ namespace MikkTSpaceSharp
 
 					// weight contribution by the angle
 					// between the two edge vectors
-					fCos = (float)SVec3.Dot(v1, v2);
+					var fCos = (float)SVec3.Dot(v1, v2);
 					fCos = (float)(fCos > 1 ? 1 : (fCos < (-1) ? (-1) : fCos));
-					fAngle = (float)CRuntime.acos((double)fCos);
-					fMagS = pTriInfos[f].fMagS;
-					fMagT = pTriInfos[f].fMagT;
+					var fAngle = (float)CRuntime.acos((double)fCos);
+					var fMagS = pTriInfos[f].fMagS;
+					var fMagT = pTriInfos[f].fMagT;
 					res.vOs = res.vOs + fAngle * vOs;
 					res.vOt = res.vOt + fAngle * vOt;
 					res.fMagS += fAngle * fMagS;
@@ -1676,9 +1637,6 @@ namespace MikkTSpaceSharp
 
 		public static void QuickSortEdges(SEdge* pSortBuffer, int iLeft, int iRight, int channel, uint uSeed)
 		{
-			uint t = 0;
-			int iL = 0; int iR = 0; int n = 0; int index = 0; int iMid = 0;
-
 			// early out
 			SEdge sTmp = new SEdge();
 			int iElems = iRight - iLeft + 1;
@@ -1697,18 +1655,18 @@ namespace MikkTSpaceSharp
 			}
 
 			// Random
-			t = uSeed & 31;
+			var t = uSeed & 31;
 			t = (uSeed << (int)t) | (uSeed >> (int)(32 - t));
 			uSeed = uSeed + t + 3;
 			// Random end
 
-			iL = iLeft;
-			iR = iRight;
-			n = iR - iL + 1;
+			var iL = iLeft;
+			var iR = iRight;
+			var n = iR - iL + 1;
 			Debug.Assert(n >= 0);
 
-			index = (int)(uSeed % n);
-			iMid = pSortBuffer[index + iL].array[channel];
+			var index = (int)(uSeed % n);
+			var iMid = pSortBuffer[index + iL].array[channel];
 			do
 			{
 				while (pSortBuffer[iL].array[channel] < iMid)

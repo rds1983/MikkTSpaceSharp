@@ -6,6 +6,6 @@
 		<Description>C# Port of https://github.com/mmikk/MikkTSpace</Description>
 		<PackageLicenseUrl>zlib</PackageLicenseUrl>
 		<PackageProjectUrl>https://github.com/rds1983/MikkTSpaceSharp</PackageProjectUrl>
-		<Version>0.5.2</Version>
+		<Version>0.5.3</Version>
 	</PropertyGroup>
 </Project>
