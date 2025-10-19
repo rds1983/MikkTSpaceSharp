@@ -33,31 +33,6 @@ namespace GltfUtility
 
 		public static Vector4[] Calculate(Vector3[] positions, Vector3[] normals, Vector2[] uvs, uint[] indices)
 		{
-			if (positions == null)
-			{
-				throw new ArgumentNullException(nameof(positions));
-			}
-
-			if (normals == null)
-			{
-				throw new ArgumentNullException(nameof(normals));
-			}
-
-			if (uvs == null)
-			{
-				throw new ArgumentNullException(nameof(uvs));
-			}
-
-			if (positions.Length != normals.Length)
-			{
-				throw new ArgumentException($"Inconsistent sizes: positions.Length = {positions.Length}, normals.Length = {normals.Length}");
-			}
-
-			if (positions.Length != uvs.Length)
-			{
-				throw new ArgumentException($"Inconsistent sizes: positions.Length = {positions.Length}, uvs.Length = {uvs.Length}");
-			}
-
 			var result = new Vector4[positions.Length];
 			Func<int, int, uint> indexCalc = (face, vertex) => indices[face * 3 + vertex];
 			var ctx = new SMikkTSpaceContext
