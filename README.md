@@ -19,6 +19,7 @@ https://www.nuget.org/packages/MikkTSpaceSharp/
 ### Usage
 This sample code accepts basic geometry represented by triangles and generates Vector4 tangents(W stores orientation):
 ```c#
+﻿using MikkTSpaceSharp;
 using static MikkTSpaceSharp.MikkTSpace;
 
 public struct VertexElementData
