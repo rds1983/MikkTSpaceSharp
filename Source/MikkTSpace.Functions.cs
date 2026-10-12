@@ -14,8 +14,16 @@ namespace MikkTSpaceSharp
 			return genTangSpace(pContext, 180);
 		}
 
-		public static bool genTangSpace(SMikkTSpaceContext pContext, float fAngularThreshold)
-		{
+        public static bool genTangSpace(SMikkTSpaceContext pContext, float fAngularThreshold)
+        {
+            using (CRuntime.BeginAllocationScope())
+            {
+                return GenTangSpaceCore(pContext, fAngularThreshold);
+            }
+        }
+
+        private static bool GenTangSpaceCore(SMikkTSpaceContext pContext, float fAngularThreshold)
+        {
 			var iNrFaces = pContext.m_getNumFaces();
 			var fThresCos = (float)CRuntime.cos(Utility.ToRadians(fAngularThreshold));
 			if ((pContext.m_getNumFaces == null) || (pContext.m_getNumVerticesOfFace == null) || (pContext.m_getPosition == null) || (pContext.m_getNormal == null) || (pContext.m_getTexCoord == null))

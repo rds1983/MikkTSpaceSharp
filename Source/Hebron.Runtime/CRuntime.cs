@@ -1,18 +1,46 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
+using System.Collections.Generic;
 
 namespace Hebron.Runtime
 {
 	public static unsafe class CRuntime
 	{
+        [ThreadStatic]
+        private static AllocationScope _scope;
+
+        internal static IDisposable BeginAllocationScope() => new AllocationScope();
+
+        private sealed class AllocationScope : IDisposable
+        {
+            internal readonly AllocationScope Previous;
+            internal readonly List<IntPtr> Pointers = new List<IntPtr>();
+
+            internal AllocationScope() { Previous = _scope; _scope = this; }
+
+            public void Dispose()
+            {
+                _scope = Previous;
+                foreach (var pointer in Pointers)
+                {
+                    Marshal.FreeHGlobal(pointer);
+                    MikkTSpaceSharpMemoryStats.Freed();
+                }
+                Pointers.Clear();
+            }
+        }
+
 		public static void* malloc(ulong size)
 		{
-			return malloc((long)size);
+			return malloc(checked((long)size));
 		}
 
 		public static void* malloc(long size)
 		{
-			var ptr = Marshal.AllocHGlobal((int)size);
+			if (size < 0) throw new ArgumentOutOfRangeException(nameof(size));
+            var ptr = Marshal.AllocHGlobal(checked((IntPtr)size));
+            try { _scope?.Pointers.Add(ptr); }
+            catch { Marshal.FreeHGlobal(ptr); throw; }
 
 			MikkTSpaceSharpMemoryStats.Allocated();
 
@@ -25,7 +53,9 @@ namespace Hebron.Runtime
 				return;
 
 			var ptr = new IntPtr(a);
-			Marshal.FreeHGlobal(ptr);
+			for (var scope = _scope; scope != null; scope = scope.Previous)
+                if (scope.Pointers.Remove(ptr)) break;
+            Marshal.FreeHGlobal(ptr);
 			MikkTSpaceSharpMemoryStats.Freed();
 		}
 
