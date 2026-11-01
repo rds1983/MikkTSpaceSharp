@@ -6,6 +6,8 @@ on:
 jobs:
   BuildAndPublish:
     runs-on: windows-latest
+    permissions:
+      id-token: write  # enable GitHub OIDC token issuance for this job
 
     steps:
     - uses: actions/checkout@v2
