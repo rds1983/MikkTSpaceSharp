@@ -4,7 +4,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Xna.Framework.Graphics;
 using MikkTSpaceNativeWrapper;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
 using System.Reflection;
