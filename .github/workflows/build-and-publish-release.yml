@@ -19,7 +19,11 @@ jobs:
       run: dotnet build MikkTSpaceSharp.Simple.sln --configuration Release
     - name: Test
       run: dotnet test MikkTSpaceSharp.Simple.sln
-    - name: Install NuGet
-      uses: NuGet/setup-nuget@v1
+    # Get a short-lived NuGet API key
+    - name: NuGet login (OIDC → temp API key)
+      uses: NuGet/login@v1
+      id: login
+      with:
+        user: ${{secrets.NUGET_USER}}
     - name: Publish MikkTSpaceSharp to NuGet
-      run: nuget.exe push Source\bin\Release\MikkTSpaceSharp.*.nupkg ${{secrets.NUGET_APIKEY}} -Source https://api.nuget.org/v3/index.json
+      run: nuget.exe push Source\bin\Release\MikkTSpaceSharp.*.nupkg ${{steps.login.outputs.NUGET_API_KEY}} -Source https://api.nuget.org/v3/index.json
