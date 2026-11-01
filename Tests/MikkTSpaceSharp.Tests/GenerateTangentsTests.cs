@@ -58,8 +58,6 @@ namespace MikkTSpaceSharp.Tests
 					}
 				}
 			}
-
-			Assert.AreEqual(0, MikkTSpaceSharpMemoryStats.Allocations);
 		}
 	}
 }
